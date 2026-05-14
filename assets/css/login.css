@@ -1,0 +1,228 @@
+/* =========================================================
+   BACKGROUND EFFECTS (Optimisé)
+========================================================= */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    /* Dégradés plus larges et animés */
+    background: 
+        radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.15), transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.12), transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.05), transparent 50%);
+    z-index: -3;
+    animation: pulseBg 15s ease-in-out infinite alternate;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 80px 80px;
+    z-index: -2;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
+
+/* =========================================================
+   FLOATING ELEMENTS (Style Premium)
+========================================================= */
+
+.floating-elements {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.floating {
+    position: absolute;
+    opacity: 0.15;
+    will-change: transform;
+    filter: blur(0.5px);
+}
+
+/* On donne des animations différentes à chaque objet pour casser la monotonie */
+
+.book {
+    width: 100px; height: 100px;
+    border: 2px solid #3b82f6;
+    border-radius: 15px;
+    top: 15%; left: 8%;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    animation: float-alt 22s ease-in-out infinite;
+}
+
+.graduation {
+    width: 80px; height: 80px;
+    border: 2px dashed #8b5cf6;
+    border-radius: 50%;
+    top: 75%; left: 12%;
+    animation: rotateCircle 30s linear infinite, float 18s ease-in-out infinite;
+}
+
+.pencil {
+    width: 150px; height: 8px;
+    background: linear-gradient(90deg, #f59e0b, #facc15);
+    border-radius: 10px;
+    top: 20%; right: 15%;
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
+    animation: float 25s ease-in-out infinite reverse;
+}
+
+.atom {
+    width: 120px; height: 120px;
+    border: 1.5px solid #06b6d4;
+    border-radius: 50%;
+    top: 60%; right: 10%;
+    box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.2);
+    animation: float-alt 20s ease-in-out infinite;
+}
+
+.globe {
+    width: 250px; height: 250px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    top: 35%; left: 40%;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.02), transparent 70%);
+    animation: float 35s ease-in-out infinite;
+}
+
+/* =========================================================
+   ANIMATIONS (Mouvements fluides)
+========================================================= */
+
+/* Flottaison principale */
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(20px, -30px) rotate(2deg); }
+    66% { transform: translate(-10px, -50px) rotate(-2deg); }
+}
+
+/* Flottaison alternative (plus d'amplitude) */
+@keyframes float-alt {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(-30px, -60px) rotate(10deg); }
+}
+
+/* Pulsation douce du fond arrière */
+@keyframes pulseBg {
+    0% { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Rotation lente */
+@keyframes rotateCircle {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Ajout d'une lueur sur le formulaire au focus (Optionnel) */
+.premium-form:focus-within {
+    box-shadow: 0 0 50px rgba(99, 102, 241, 0.15);
+    transition: box-shadow 0.5s ease;
+}
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-container{
+    width:1000px;
+    max-width:95%;
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+}
+
+.login-left{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:white;
+    padding:60px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.login-left h1{
+    font-size:42px;
+    margin-bottom:15px;
+}
+
+.login-left p{
+    font-size:18px;
+    opacity:0.9;
+}
+
+.login-right{
+    padding:50px;
+    display:flex;
+    align-items:center;
+}
+
+form{
+    width:100%;
+}
+
+form h2{
+    margin-bottom:30px;
+    color:#0f172a;
+}
+
+.input-group{
+    margin-bottom:20px;
+}
+
+.input-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.input-group input,
+.input-group select{
+    width:100%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:15px;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+#message{
+    margin-top:15px;
+    text-align:center;
+    font-weight:bold;
+}
