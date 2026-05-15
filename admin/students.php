@@ -190,70 +190,177 @@ $students = $stmt->fetchAll();
 
 <div class="app-container">
 
-    <!-- =========================
-         SIDEBAR PREMIUM
+     <!-- =========================
+         SIDEBAR
     ========================== -->
+
     <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2 class="logo">
-                <i data-lucide="graduation-cap" class="logo-icon"></i>
-                EduManage
-            </h2>
+
+        <!-- TOP -->
+
+        <div>
+
+            <div class="brand">
+
+                <div class="logo-box">
+                    🎓
+                </div>
+
+                <div>
+
+                    <h2 class="logo">
+                        EduManage
+                    </h2>
+
+                    <span class="logo-subtitle">
+                        Academic Prestige
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- MENU -->
+
+            <ul class="menu">
+
+                <li class="menu-item">
+
+                    <a href="dashboard.php">
+
+                        <i data-lucide="layout-dashboard"></i>
+
+                        <span>
+                            Dashboard
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item active">
+
+                    <a href="students.php">
+
+                        <i data-lucide="graduation-cap"></i>
+
+                        <span>
+                            Étudiants
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="teachers.php">
+
+                        <i data-lucide="users"></i>
+
+                        <span>
+                            Enseignants
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="subjects.php">
+
+                        <i data-lucide="book-open"></i>
+
+                        <span>
+                            Matières
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="schedule.php">
+
+                        <i data-lucide="calendar-days"></i>
+
+                        <span>
+                            Emploi du Temps
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="notes.php">
+
+                        <i data-lucide="clipboard-list"></i>
+
+                        <span>
+                            Notes
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="settings.php">
+
+                        <i data-lucide="settings"></i>
+
+                        <span>
+                            Paramètres
+                        </span>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
         </div>
 
-        <nav class="sidebar-nav">
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link">
-                        <i data-lucide="layout-dashboard"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a href="students.php" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Étudiants</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="teachers.php" class="nav-link">
-                        <i data-lucide="briefcase"></i>
-                        <span>Enseignants</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="subjects.php" class="nav-link">
-                        <i data-lucide="book-open"></i>
-                        <span>Matières</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="schedule.php" class="nav-link">
-                        <i data-lucide="calendar"></i>
-                        <span>Emploi du Temps</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="notes.php" class="nav-link">
-                        <i data-lucide="file-text"></i>
-                        <span>Notes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="settings.php" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <!-- BOTTOM -->
 
         <div class="sidebar-footer">
-            <a href="../api/logout.php" class="logout-btn">
+
+            <div class="admin-profile">
+
+                <div class="avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <h4>
+                        <?php echo $_SESSION['user_nom']; ?>
+                    </h4>
+
+                    <span>
+                        Administrateur
+                    </span>
+
+                </div>
+
+            </div>
+
+            <a href="../api/logout.php"
+               class="logout-btn">
+
                 <i data-lucide="log-out"></i>
-                <span>Déconnexion</span>
+
+                Déconnexion
+
             </a>
+
         </div>
+
     </aside>
 
     <!-- =========================

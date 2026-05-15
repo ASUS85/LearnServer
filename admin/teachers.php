@@ -88,48 +88,178 @@ $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
     <div class="app-container">
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <i data-lucide="graduation-cap" class="logo-icon"></i>
-                    <span>EduManage</span>
+        <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <!-- TOP -->
+
+        <div>
+
+            <div class="brand">
+
+                <div class="logo-box">
+                    🎓
                 </div>
+
+                <div>
+
+                    <h2 class="logo">
+                        EduManage
+                    </h2>
+
+                    <span class="logo-subtitle">
+                        Academic Prestige
+                    </span>
+
+                </div>
+
             </div>
 
-            <nav class="nav-list">
-                <a href="dashboard.php" class="nav-link">
-                    <i data-lucide="layout-dashboard"></i> Dashboard
-                </a>
-                <a href="students.php" class="nav-link">
-                    <i data-lucide="users"></i> Étudiants
-                </a>
-                <div class="nav-item active">
-                    <a href="teachers.php" class="nav-link">
-                        <i data-lucide="briefcase"></i> Enseignants
+            <!-- MENU -->
+
+            <ul class="menu">
+
+                <li class="menu-item">
+
+                    <a href="dashboard.php">
+
+                        <i data-lucide="layout-dashboard"></i>
+
+                        <span>
+                            Dashboard
+                        </span>
+
                     </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="students.php">
+
+                        <i data-lucide="graduation-cap"></i>
+
+                        <span>
+                            Étudiants
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item active">
+
+                    <a href="teachers.php">
+
+                        <i data-lucide="users"></i>
+
+                        <span>
+                            Enseignants
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="subjects.php">
+
+                        <i data-lucide="book-open"></i>
+
+                        <span>
+                            Matières
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="schedule.php">
+
+                        <i data-lucide="calendar-days"></i>
+
+                        <span>
+                            Emploi du Temps
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="notes.php">
+
+                        <i data-lucide="clipboard-list"></i>
+
+                        <span>
+                            Notes
+                        </span>
+
+                    </a>
+
+                </li>
+
+                <li class="menu-item">
+
+                    <a href="settings.php">
+
+                        <i data-lucide="settings"></i>
+
+                        <span>
+                            Paramètres
+                        </span>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+        <!-- BOTTOM -->
+
+        <div class="sidebar-footer">
+
+            <div class="admin-profile">
+
+                <div class="avatar">
+                    A
                 </div>
-                <a href="subjects.php" class="nav-link">
-                    <i data-lucide="book-open"></i> Matières
-                </a>
-                <a href="schedule.php" class="nav-link">
-                    <i data-lucide="calendar"></i> Emploi du Temps
-                </a>
-                <a href="notes.php" class="nav-link">
-                    <i data-lucide="clipboard-list"></i> Notes
-                </a>
-                <a href="settings.php" class="nav-link">
-                    <i data-lucide="settings"></i> Paramètres
-                </a>
-            </nav>
 
-            <div class="sidebar-footer">
-                <a href="../api/logout.php" class="logout-btn">
-                    <i data-lucide="log-out"></i> Déconnexion
-                </a>
+                <div>
+
+                    <h4>
+                        <?php echo $_SESSION['user_nom']; ?>
+                    </h4>
+
+                    <span>
+                        Administrateur
+                    </span>
+
+                </div>
+
             </div>
-        </aside>
 
+            <a href="../api/logout.php"
+               class="logout-btn">
+
+                <i data-lucide="log-out"></i>
+
+                Déconnexion
+
+            </a>
+
+        </div>
+
+    </aside>
         <!-- MAIN CONTENT -->
         <main class="main-content">
             

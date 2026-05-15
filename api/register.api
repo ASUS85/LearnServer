@@ -1,0 +1,367 @@
+<?php
+
+session_start();
+
+require_once '../config/database.php';
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
+
+$error = "";
+$success = "";
+
+$nom = isset($_POST['nom'])
+    ? trim($_POST['nom'])
+    : '';
+
+$prenom = isset($_POST['prenom'])
+    ? trim($_POST['prenom'])
+    : '';
+
+$email = isset($_POST['email'])
+    ? trim($_POST['email'])
+    : '';
+
+$telephone = isset($_POST['telephone'])
+    ? trim($_POST['telephone'])
+    : '';
+
+$password = isset($_POST['password'])
+    ? trim($_POST['password'])
+    : '';
+
+$confirm_password = isset($_POST['confirm_password'])
+    ? trim($_POST['confirm_password'])
+    : '';
+
+$role = isset($_POST['role'])
+    ? trim($_POST['role'])
+    : '';
+
+/* =========================================================
+   VERIFICATION CHAMPS
+========================================================= */
+
+if(
+    empty($nom) ||
+    empty($prenom) ||
+    empty($email) ||
+    empty($password) ||
+    empty($confirm_password) ||
+    empty($role)
+){
+
+    $error = "Tous les champs obligatoires doivent être remplis.";
+
+}
+
+/* =========================================================
+   MOT DE PASSE
+========================================================= */
+
+if(
+    empty($error) &&
+    $password !== $confirm_password
+){
+
+    $error = "Les mots de passe ne correspondent pas.";
+
+}
+
+/* =========================================================
+   TABLES
+========================================================= */
+
+$tableMap = array(
+
+    'admin'  => 'admins',
+    'student' => 'etudiants',
+    'teacher' => 'enseignants'
+
+);
+
+/* =========================================================
+   VERIFICATION ROLE
+========================================================= */
+
+if(
+    empty($error) &&
+    !array_key_exists($role, $tableMap)
+){
+
+    $error = "Type de compte invalide.";
+
+}
+
+/* =========================================================
+   VERIFICATION EMAIL
+========================================================= */
+
+if(empty($error)){
+
+    $table = $tableMap[$role];
+
+    $stmt = $pdo->prepare("
+
+        SELECT id
+        FROM $table
+        WHERE email = ?
+
+    ");
+
+    $stmt->execute([$email]);
+
+    if($stmt->rowCount() > 0){
+
+        $error = "Cet email existe déjà.";
+
+    }
+
+}
+
+/* =========================================================
+   INSERTION UTILISATEUR
+========================================================= */
+
+if(empty($error)){
+
+    // GENERATION MATRICULE
+
+    $prefix = strtoupper(substr($role,0,3));
+
+    $matricule = $prefix . rand(1000,9999);
+
+    /* =====================================================
+       ADMIN
+    ===================================================== */
+
+    if($role == "admin"){
+
+        $stmt = $pdo->prepare("
+
+            INSERT INTO admins(
+
+                nom,
+                prenom,
+                email,
+                mot_de_passe
+
+            )
+
+            VALUES(?,?,?,?)
+
+        ");
+
+        $stmt->execute([
+
+            $nom,
+            $prenom,
+            $email,
+            $password
+
+        ]);
+
+    }
+
+    /* =====================================================
+       STUDENT
+    ===================================================== */
+
+    elseif($role == "student"){
+
+        $stmt = $pdo->prepare("
+
+            INSERT INTO etudiants(
+
+                matricule,
+                nom,
+                prenom,
+                email,
+                mot_de_passe,
+                telephone
+
+            )
+
+            VALUES(?,?,?,?,?,?)
+
+        ");
+
+        $stmt->execute([
+
+            $matricule,
+            $nom,
+            $prenom,
+            $email,
+            $password,
+            $telephone
+
+        ]);
+
+    }
+
+    /* =====================================================
+       TEACHER
+    ===================================================== */
+
+    elseif($role == "teacher"){
+
+        $stmt = $pdo->prepare("
+
+            INSERT INTO enseignants(
+
+                matricule,
+                nom,
+                prenom,
+                email,
+                mot_de_passe,
+                telephone
+
+            )
+
+            VALUES(?,?,?,?,?,?)
+
+        ");
+
+        $stmt->execute([
+
+            $matricule,
+            $nom,
+            $prenom,
+            $email,
+            $password,
+            $telephone
+
+        ]);
+
+    }
+
+    $success = "Compte créé avec succès.";
+
+}
+
+/* =========================================================
+   SI ERREUR
+========================================================= */
+
+if(!empty($error)){
+
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Inscription refusée
+    </title>
+
+</head>
+
+<body>
+
+    <div class="error-container">
+
+        <div class="icon">
+            ✕
+        </div>
+
+        <h1>
+            Inscription impossible
+        </h1>
+
+        <p>
+
+            Impossible de créer votre compte
+            EduManage Pro.
+
+        </p>
+
+        <div class="error-message">
+
+            <?= htmlspecialchars($error); ?>
+
+        </div>
+
+        <a href="../register.php"
+           class="back-btn">
+
+            Retour à l'inscription
+
+        </a>
+
+    </div>
+
+</body>
+</html>
+
+<?php
+
+    exit;
+
+}
+
+/* =========================================================
+   SUCCESS PAGE
+========================================================= */
+
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Inscription réussie
+    </title>
+
+</head>
+
+<body>
+
+    <div class="success-container">
+
+        <div class="icon">
+            ✓
+        </div>
+
+        <h1>
+            Compte créé
+        </h1>
+
+        <p>
+
+            Votre compte EduManage Pro
+            a été créé avec succès.
+
+        </p>
+
+        <div class="success-message">
+
+            <?= htmlspecialchars($success); ?>
+
+        </div>
+
+        <a href="../index.php"
+           class="back-btn">
+
+            Aller à la connexion
+
+        </a>
+
+    </div>
+
+</body>
+</html>

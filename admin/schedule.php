@@ -216,65 +216,156 @@ $schedules = $pdo->query("
 
 <aside class="sidebar">
 
+    <!-- TOP -->
+
     <div>
 
-        <h2 class="logo">
-            EduManage
-        </h2>
+        <div class="brand">
+
+            <div class="logo-box">
+                🎓
+            </div>
+
+            <div>
+
+                <h2 class="logo">
+                    EduManage
+                </h2>
+
+                <span class="logo-subtitle">
+                    Academic Prestige
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- MENU -->
 
         <ul class="menu">
 
             <li class="menu-item">
+
                 <a href="dashboard.php">
-                    <span>🏠</span>
-                    Dashboard
+
+                    <i data-lucide="layout-dashboard"></i>
+
+                    <span>
+                        Dashboard
+                    </span>
+
                 </a>
+
             </li>
 
             <li class="menu-item">
+
                 <a href="students.php">
-                    <span>🎓</span>
-                    Étudiants
+
+                    <i data-lucide="graduation-cap"></i>
+
+                    <span>
+                        Étudiants
+                    </span>
+
                 </a>
+
             </li>
 
             <li class="menu-item">
+
                 <a href="teachers.php">
-                    <span>👨‍🏫</span>
-                    Enseignants
+
+                    <i data-lucide="users"></i>
+
+                    <span>
+                        Enseignants
+                    </span>
+
                 </a>
+
             </li>
 
             <li class="menu-item">
+
                 <a href="subjects.php">
-                    <span>📚</span>
-                    Matières
+
+                    <i data-lucide="book-open"></i>
+
+                    <span>
+                        Matières
+                    </span>
+
                 </a>
+
             </li>
 
             <li class="menu-item active">
+
                 <a href="schedule.php">
-                    <span>📅</span>
-                    Emploi du Temps
+
+                    <i data-lucide="calendar-days"></i>
+
+                    <span>
+                        Emploi du Temps
+                    </span>
+
                 </a>
+
             </li>
+
             <li class="menu-item">
-                    <a href="settings.php">
-                        <span>⚙️</span>
+
+                <a href="settings.php">
+
+                    <i data-lucide="settings"></i>
+
+                    <span>
                         Paramètres
-                    </a>
+                    </span>
+
+                </a>
+
             </li>
 
         </ul>
 
     </div>
 
-    <a href="../api/logout.php"
-       class="logout-btn">
+    <!-- FOOTER -->
 
-        🚪 Déconnexion
+    <div class="sidebar-footer">
 
-    </a>
+        <div class="admin-profile">
+
+            <div class="avatar">
+                A
+            </div>
+
+            <div>
+
+                <h4>
+                    <?php echo $_SESSION['user_nom']; ?>
+                </h4>
+
+                <span>
+                    Administrateur
+                </span>
+
+            </div>
+
+        </div>
+
+        <a href="../api/logout.php"
+           class="logout-btn">
+
+            <i data-lucide="log-out"></i>
+
+            Déconnexion
+
+        </a>
+
+    </div>
 
 </aside>
 
@@ -284,29 +375,15 @@ $schedules = $pdo->query("
 
 <main class="main-content">
 
-    <!-- ALERTS -->
+    <!-- PAGE HEADER -->
 
-    <?php if(!empty($message)): ?>
+    <div class="page-header">
 
-        <div class="success-message">
-            <?= htmlspecialchars($message); ?>
-        </div>
+        <div class="header-info">
 
-    <?php endif; ?>
-
-    <?php if(!empty($error)): ?>
-
-        <div class="error-message">
-            <?= htmlspecialchars($error); ?>
-        </div>
-
-    <?php endif; ?>
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-        <div>
+            <span class="badge-accent">
+                Academic Planning
+            </span>
 
             <h1>
                 Gestion Emploi du Temps
@@ -329,47 +406,105 @@ $schedules = $pdo->query("
 
     </div>
 
+    <!-- ALERTS -->
+
+    <?php if(!empty($message)): ?>
+
+        <div class="success-message">
+            <?= htmlspecialchars($message); ?>
+        </div>
+
+    <?php endif; ?>
+
+    <?php if(!empty($error)): ?>
+
+        <div class="error-message">
+            <?= htmlspecialchars($error); ?>
+        </div>
+
+    <?php endif; ?>
+
     <!-- STATS -->
 
     <div class="stats-grid">
 
-        <div class="stat-card">
+        <div class="stat-card glass-panel">
 
-            <h3>Total Cours</h3>
+            <div class="stat-icon blue">
 
-            <p>
-                <?= count($schedules); ?>
-            </p>
+                <i data-lucide="calendar-days"></i>
 
-        </div>
+            </div>
 
-        <div class="stat-card">
+            <div class="stat-details">
 
-            <h3>Filières</h3>
+                <h3>Total Cours</h3>
 
-            <p>
-                <?= count($filieres); ?>
-            </p>
+                <p class="stat-number">
+                    <?= count($schedules); ?>
+                </p>
 
-        </div>
-
-        <div class="stat-card">
-
-            <h3>Enseignants</h3>
-
-            <p>
-                <?= count($enseignants); ?>
-            </p>
+            </div>
 
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card glass-panel">
 
-            <h3>Matières</h3>
+            <div class="stat-icon purple">
 
-            <p>
-                <?= count($matieres); ?>
-            </p>
+                <i data-lucide="building-2"></i>
+
+            </div>
+
+            <div class="stat-details">
+
+                <h3>Filières</h3>
+
+                <p class="stat-number">
+                    <?= count($filieres); ?>
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="stat-card glass-panel">
+
+            <div class="stat-icon orange">
+
+                <i data-lucide="users"></i>
+
+            </div>
+
+            <div class="stat-details">
+
+                <h3>Enseignants</h3>
+
+                <p class="stat-number">
+                    <?= count($enseignants); ?>
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="stat-card glass-panel">
+
+            <div class="stat-icon green">
+
+                <i data-lucide="book-open"></i>
+
+            </div>
+
+            <div class="stat-details">
+
+                <h3>Matières</h3>
+
+                <p class="stat-number">
+                    <?= count($matieres); ?>
+                </p>
+
+            </div>
 
         </div>
 
@@ -377,136 +512,198 @@ $schedules = $pdo->query("
 
     <!-- TABLE -->
 
-    <div class="table-card">
+    <div class="table-card glass-panel">
 
-        <table>
+        <div class="table-container">
 
-            <thead>
+            <table class="premium-table">
 
-                <tr>
-
-                    <th>Jour</th>
-                    <th>Horaire</th>
-                    <th>Matière</th>
-                    <th>Enseignant</th>
-                    <th>Filière</th>
-                    <th>Niveau</th>
-                    <th>Salle</th>
-                    <th>Type</th>
-                    <th>Semestre</th>
-                    <th>Actions</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-            <?php if(count($schedules) > 0): ?>
-
-                <?php foreach($schedules as $schedule): ?>
+                <thead>
 
                     <tr>
 
-                        <td>
-                            <?= htmlspecialchars($schedule['jour']); ?>
-                        </td>
+                        <th>Jour</th>
+                        <th>Horaire</th>
+                        <th>Matière</th>
+                        <th>Enseignant</th>
+                        <th>Filière</th>
+                        <th>Niveau</th>
+                        <th>Salle</th>
+                        <th>Type</th>
+                        <th>Semestre</th>
+                        <th class="text-right">Actions</th>
 
-                        <td>
+                    </tr>
 
-                            <?= substr($schedule['heure_debut'],0,5); ?>
+                </thead>
 
-                            -
+                <tbody>
 
-                            <?= substr($schedule['heure_fin'],0,5); ?>
+                <?php if(count($schedules) > 0): ?>
 
-                        </td>
+                    <?php foreach($schedules as $schedule): ?>
 
-                        <td>
+                        <tr>
 
-                            <strong>
-                                <?= htmlspecialchars($schedule['nom_matiere']); ?>
-                            </strong>
+                            <td>
 
-                            <br>
+                                <span class="badge-outline">
 
-                            <small>
-                                <?= htmlspecialchars($schedule['code_matiere']); ?>
-                            </small>
+                                    <?= htmlspecialchars($schedule['jour']); ?>
 
-                        </td>
+                                </span>
 
-                        <td>
+                            </td>
 
-                            <?= htmlspecialchars($schedule['nom']); ?>
+                            <td>
 
-                            <?= htmlspecialchars($schedule['prenom']); ?>
+                                <div class="text-white fw-bold">
 
-                        </td>
+                                    <?= substr($schedule['heure_debut'],0,5); ?>
 
-                        <td>
-                            <?= htmlspecialchars($schedule['nom_filiere']); ?>
-                        </td>
+                                    -
 
-                        <td>
-                            <?= htmlspecialchars($schedule['nom_niveau']); ?>
-                        </td>
+                                    <?= substr($schedule['heure_fin'],0,5); ?>
 
-                        <td>
-                            <?= htmlspecialchars($schedule['salle']); ?>
-                        </td>
+                                </div>
 
-                        <td>
+                            </td>
 
-                            <span class="badge">
+                            <td>
 
-                                <?= htmlspecialchars($schedule['type_cours']); ?>
+                                <div class="user-info">
 
-                            </span>
+                                    <div class="avatar">
 
-                        </td>
+                                        <?= strtoupper(substr($schedule['nom_matiere'],0,1)); ?>
 
-                        <td>
-                            <?= htmlspecialchars($schedule['semestre']); ?>
-                        </td>
+                                    </div>
 
-                        <td class="actions">
+                                    <div>
 
-                            <a
-                                href="?delete=<?= $schedule['id']; ?>"
-                                class="delete-btn"
+                                        <div class="fw-bold text-white">
 
-                                onclick="return confirm('Supprimer ce cours ?')"
-                            >
+                                            <?= htmlspecialchars($schedule['nom_matiere']); ?>
 
-                                <i data-lucide="trash-2"></i>
+                                        </div>
 
-                            </a>
+                                        <div class="text-muted">
+
+                                            <?= htmlspecialchars($schedule['code_matiere']); ?>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="text-white">
+
+                                    <?= htmlspecialchars($schedule['nom']); ?>
+
+                                    <?= htmlspecialchars($schedule['prenom']); ?>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge">
+
+                                    <?= htmlspecialchars($schedule['nom_filiere']); ?>
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <span class="coef">
+
+                                    <?= htmlspecialchars($schedule['nom_niveau']); ?>
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <div class="text-muted">
+
+                                    <?= htmlspecialchars($schedule['salle']); ?>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge">
+
+                                    <?= htmlspecialchars($schedule['type_cours']); ?>
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <div class="text-muted">
+
+                                    <?= htmlspecialchars($schedule['semestre']); ?>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="actions">
+
+                                    <a
+                                        href="?delete=<?= $schedule['id']; ?>"
+                                        class="delete-btn"
+
+                                        onclick="return confirm('Supprimer ce cours ?')"
+                                    >
+
+                                        <i data-lucide="trash-2"></i>
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    <?php endforeach; ?>
+
+                <?php else: ?>
+
+                    <tr>
+
+                        <td colspan="10"
+                            class="empty">
+
+                            Aucun emploi du temps enregistré
 
                         </td>
 
                     </tr>
 
-                <?php endforeach; ?>
+                <?php endif; ?>
 
-            <?php else: ?>
+                </tbody>
 
-                <tr>
+            </table>
 
-                    <td colspan="10"
-                        class="empty">
-
-                        Aucun emploi du temps enregistré
-
-                    </td>
-
-                </tr>
-
-            <?php endif; ?>
-
-            </tbody>
-
-        </table>
+        </div>
 
     </div>
 

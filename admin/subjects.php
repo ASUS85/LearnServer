@@ -135,141 +135,332 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
 
-     <!-- =========================
+           <!-- =========================
          SIDEBAR
     ========================== -->
+
     <aside class="sidebar">
+
+        <!-- TOP -->
 
         <div>
 
-            <h2 class="logo">
-                EduManage
-            </h2>
+            <div class="brand">
+
+                <div class="logo-box">
+                    🎓
+                </div>
+
+                <div>
+
+                    <h2 class="logo">
+                        EduManage
+                    </h2>
+
+                    <span class="logo-subtitle">
+                        Academic Prestige
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- MENU -->
 
             <ul class="menu">
 
                 <li class="menu-item">
+
                     <a href="dashboard.php">
-                        <span>🏠</span>
-                        Dashboard
+
+                        <i data-lucide="layout-dashboard"></i>
+
+                        <span>
+                            Dashboard
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item">
+
                     <a href="students.php">
-                        <span>🎓</span>
-                        Étudiants
+
+                        <i data-lucide="graduation-cap"></i>
+
+                        <span>
+                            Étudiants
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item">
+
                     <a href="teachers.php">
-                        <span>👨‍🏫</span>
-                        Enseignants
+
+                        <i data-lucide="users"></i>
+
+                        <span>
+                            Enseignants
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item active">
+
                     <a href="subjects.php">
-                        <span>📚</span>
-                        Matières
+
+                        <i data-lucide="book-open"></i>
+
+                        <span>
+                            Matières
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item">
+
                     <a href="schedule.php">
-                        <span>📅</span>
-                        Emploi du Temps
+
+                        <i data-lucide="calendar-days"></i>
+
+                        <span>
+                            Emploi du Temps
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item">
+
                     <a href="notes.php">
-                        <span>📝</span>
-                        Notes
+
+                        <i data-lucide="clipboard-list"></i>
+
+                        <span>
+                            Notes
+                        </span>
+
                     </a>
+
                 </li>
 
                 <li class="menu-item">
+
                     <a href="settings.php">
-                        <span>⚙️</span>
-                        Paramètres
+
+                        <i data-lucide="settings"></i>
+
+                        <span>
+                            Paramètres
+                        </span>
+
                     </a>
+
                 </li>
 
             </ul>
 
         </div>
 
-        <a href="../api/logout.php" class="logout-btn">
-            🚪 Déconnexion
-        </a>
+        <!-- BOTTOM -->
+
+        <div class="sidebar-footer">
+
+            <div class="admin-profile">
+
+                <div class="avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <h4>
+                        <?php echo $_SESSION['user_nom']; ?>
+                    </h4>
+
+                    <span>
+                        Administrateur
+                    </span>
+
+                </div>
+
+            </div>
+
+            <a href="../api/logout.php"
+               class="logout-btn">
+
+                <i data-lucide="log-out"></i>
+
+                Déconnexion
+
+            </a>
+
+        </div>
 
     </aside>
 
     <!-- =========================
-         MAIN CONTENT
-    ========================== -->
+     MAIN CONTENT
+========================= -->
 
-    <main class="main-content">
+<main class="main-content">
 
-        <!-- ALERTS -->
+    <!-- PAGE HEADER -->
 
-        <?php if(!empty($message)): ?>
+    <div class="page-header">
 
-            <div class="success-message">
-                <?= $message; ?>
+        <div class="header-info">
+
+            <span class="badge-accent">
+                Academic Management
+            </span>
+
+            <h1>
+                Gestion des Matières
+            </h1>
+
+            <p>
+                Administration des matières académiques et coefficients
+            </p>
+
+        </div>
+
+        <button class="add-btn" onclick="openModal()">
+
+            <i data-lucide="plus"></i>
+
+            Ajouter Matière
+
+        </button>
+
+    </div>
+
+    <!-- ALERTS -->
+
+    <?php if(!empty($message)): ?>
+
+        <div class="success-message">
+            <?= $message; ?>
+        </div>
+
+    <?php endif; ?>
+
+    <?php if(!empty($error)): ?>
+
+        <div class="error-message">
+            <?= $error; ?>
+        </div>
+
+    <?php endif; ?>
+
+    <!-- STATS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card glass-panel">
+
+            <div class="stat-icon blue">
+
+                <i data-lucide="book-open"></i>
+
             </div>
 
-        <?php endif; ?>
+            <div class="stat-details">
 
-        <?php if(!empty($error)): ?>
+                <h3>
+                    Total Matières
+                </h3>
 
-            <div class="error-message">
-                <?= $error; ?>
-            </div>
+                <p class="stat-number">
 
-        <?php endif; ?>
+                    <?= count($subjects); ?>
 
-        <!-- TOPBAR -->
-
-        <div class="topbar">
-
-            <div>
-
-                <h1>Gestion des Matières</h1>
-
-                <p>
-                    Administration des matières académiques
                 </p>
 
             </div>
 
-            <button class="add-btn" onclick="openModal()">
+        </div>
 
-                <i data-lucide="plus"></i>
+        <div class="stat-card glass-panel">
 
-                Ajouter Matière
+            <div class="stat-icon purple">
 
-            </button>
+                <i data-lucide="layers-3"></i>
+
+            </div>
+
+            <div class="stat-details">
+
+                <h3>
+                    Matières Actives
+                </h3>
+
+                <p class="stat-number">
+
+                    <?= count($subjects); ?>
+
+                </p>
+
+            </div>
 
         </div>
 
-        <!-- TABLE -->
+        <div class="stat-card glass-panel">
 
-        <div class="table-card">
+            <div class="stat-icon orange">
 
-            <table>
+                <i data-lucide="calculator"></i>
+
+            </div>
+
+            <div class="stat-details">
+
+                <h3>
+                    Coefficients
+                </h3>
+
+                <p class="stat-number">
+
+                    <?=
+                        array_sum(
+                            array_column($subjects, 'coefficient')
+                        );
+                    ?>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+
+    <div class="table-card glass-panel">
+
+        <div class="table-container">
+
+            <table class="premium-table">
 
                 <thead>
 
                     <tr>
 
                         <th>ID</th>
-                        <th>Nom Matière</th>
-                        <th>Code Matière</th>
+                        <th>Matière</th>
+                        <th>Code</th>
                         <th>Coefficient</th>
-                        <th>Actions</th>
+                        <th class="text-right">Actions</th>
 
                     </tr>
 
@@ -284,11 +475,43 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
 
                                 <td>
-                                    <?= $subject['id']; ?>
+
+                                    <span class="badge-outline">
+
+                                        #<?= $subject['id']; ?>
+
+                                    </span>
+
                                 </td>
 
                                 <td>
-                                    <?= htmlspecialchars($subject['nom_matiere']); ?>
+
+                                    <div class="user-info">
+
+                                        <div class="avatar">
+
+                                            <?= strtoupper(substr($subject['nom_matiere'],0,1)); ?>
+
+                                        </div>
+
+                                        <div>
+
+                                            <div class="fw-bold text-white">
+
+                                                <?= htmlspecialchars($subject['nom_matiere']); ?>
+
+                                            </div>
+
+                                            <div class="text-muted">
+
+                                                Matière académique
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 </td>
 
                                 <td>
@@ -311,37 +534,41 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 </td>
 
-                                <td class="actions">
+                                <td>
 
-                                    <!-- EDIT -->
+                                    <div class="actions">
 
-                                    <button
-                                        class="edit-btn"
+                                        <!-- EDIT -->
 
-                                        onclick="openEditModal(
-                                            '<?= $subject['id']; ?>',
-                                            '<?= htmlspecialchars($subject['nom_matiere']); ?>',
-                                            '<?= htmlspecialchars($subject['code_matiere']); ?>',
-                                            '<?= htmlspecialchars($subject['coefficient']); ?>'
-                                        )"
-                                    >
+                                        <button
+                                            class="edit-btn"
 
-                                        <i data-lucide="square-pen"></i>
+                                            onclick="openEditModal(
+                                                '<?= $subject['id']; ?>',
+                                                '<?= htmlspecialchars($subject['nom_matiere']); ?>',
+                                                '<?= htmlspecialchars($subject['code_matiere']); ?>',
+                                                '<?= htmlspecialchars($subject['coefficient']); ?>'
+                                            )"
+                                        >
 
-                                    </button>
+                                            <i data-lucide="square-pen"></i>
 
-                                    <!-- DELETE -->
+                                        </button>
 
-                                    <a
-                                        href="?delete=<?= $subject['id']; ?>"
-                                        class="delete-btn"
+                                        <!-- DELETE -->
 
-                                        onclick="return confirm('Voulez-vous supprimer cette matière ?')"
-                                    >
+                                        <a
+                                            href="?delete=<?= $subject['id']; ?>"
+                                            class="delete-btn"
 
-                                        <i data-lucide="trash-2"></i>
+                                            onclick="return confirm('Voulez-vous supprimer cette matière ?')"
+                                        >
 
-                                    </a>
+                                            <i data-lucide="trash-2"></i>
+
+                                        </a>
+
+                                    </div>
 
                                 </td>
 
@@ -369,7 +596,9 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         </div>
 
-    </main>
+    </div>
+
+</main>
 
     <!-- =========================
          MODAL AJOUT
