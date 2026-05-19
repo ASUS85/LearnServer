@@ -1,0 +1,27 @@
+# =========================================================
+# PUBLIC DIRECTORY ROUTING
+# =========================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /LearnServer/public/
+    
+    # Servir les fichiers réels (CSS, JS, images, etc)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Réécrire vers index.php
+    RewriteRule ^(.*)$ index.php [L,QSA]
+</IfModule>
+
+# =========================================================
+# Redirection temporaire des assets
+# =========================================================
+# Redirige les requêtes de css/js vers le dossier assets parent
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} ^/LearnServer/public/css/(.*)$
+    RewriteRule ^css/(.*)$ ../assets/css/$1 [L]
+    
+    RewriteCond %{REQUEST_URI} ^/LearnServer/public/js/(.*)$
+    RewriteRule ^js/(.*)$ ../assets/js/$1 [L]
+</IfModule>
