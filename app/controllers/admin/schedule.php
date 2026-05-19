@@ -202,7 +202,7 @@ $schedules = $pdo->query("
     <title>Gestion Emploi du Temps</title>
 
     <link rel="stylesheet"
-          href="../assets/css/schedule.css">
+          href="../../assets/css/schedule.css">
 
     <script src="https://unpkg.com/lucide@latest"></script>
 

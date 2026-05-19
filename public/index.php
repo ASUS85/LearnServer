@@ -14,7 +14,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet"
-          href="assets/css/login.css">
+          href="../assets/css/login.css">
 
     <!-- LUCIDE ICONS -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -369,7 +369,7 @@
 
 </script>
 
-<script src="assets/js/login.js"></script>
+<script src="../assets/js/login.js"></script>
 
 </body>
 </html>

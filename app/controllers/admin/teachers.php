@@ -82,7 +82,7 @@ $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Enseignants | EduManage</title>
     <!-- On réutilise le CSS premium pour la cohérence -->
-    <link rel="stylesheet" href="../assets/css/teachers.css">
+    <link rel="stylesheet" href="../../assets/css/teachers.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>

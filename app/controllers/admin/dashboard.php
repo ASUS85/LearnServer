@@ -49,7 +49,7 @@ $totalSchedules = $pdo->query("
 
     <!-- CSS -->
     <link rel="stylesheet"
-          href="../assets/css/dashboardadmin.css">
+          href="../../assets/css/dashboardadmin.css">
 
     <!-- ICONS -->
     <script src="https://unpkg.com/lucide@latest"></script>

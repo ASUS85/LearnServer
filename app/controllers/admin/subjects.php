@@ -127,7 +127,7 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <title>Gestion des Matières</title>
 
-    <link rel="stylesheet" href="../assets/css/subjects.css">
+    <link rel="stylesheet" href="../../assets/css/subjects.css">
 
     <script src="https://unpkg.com/lucide@latest"></script>
 

@@ -202,7 +202,7 @@ if(isset($_POST['register'])){
     <!-- CSS -->
 
     <link rel="stylesheet"
-          href="assets/css/register.css">
+          href="../../assets/css/register.css">
 
     <!-- ICONS -->
 

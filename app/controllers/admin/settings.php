@@ -287,7 +287,7 @@ if(isset($_POST['save_settings'])){
 <title>Paramètres Avancés</title>
 
 <link rel="stylesheet"
-      href="../assets/css/settings.css">
+      href="../../assets/css/settings.css">
 
 </head>
 

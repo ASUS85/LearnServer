@@ -143,7 +143,7 @@ $students = $stmt->fetchAll();
     <title>Gestion Étudiants - EduManage</title>
 
     <!-- Assure-toi que ce fichier CSS contient les styles du dashboard premium -->
-    <link rel="stylesheet" href="../assets/css/students.css">
+    <link rel="stylesheet" href="../../assets/css/students.css">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
