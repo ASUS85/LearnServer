@@ -1,0 +1,16 @@
+# =========================================================
+# FRONT CONTROLLER ROUTING
+# =========================================================
+# Redirige toutes les requêtes vers public/index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /LearnServer/
+    
+    # Ne pas réécrire les fichiers réels
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Réécrire vers public/index.php
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
+</IfModule>

@@ -1,3 +1,10 @@
+<?php
+/**
+ * Afficher les erreurs de connexion
+ */
+$error = $error ?? '';
+$message = $message ?? '';
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -14,7 +21,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet"
-          href="assets/css/login.css">
+          href="<?php echo assetUrl('css/login.css'); ?>">
 
     <!-- LUCIDE ICONS -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -198,10 +205,24 @@
 
             </div>
 
+            <!-- MESSAGE DE SUCCÈS -->
+            <?php if (!empty($message)): ?>
+                <div class="alert alert-success">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- ERREUR -->
+            <?php if (!empty($error)): ?>
+                <div class="alert alert-danger">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+
             <!-- FORM -->
 
             <form method="POST"
-                  action="api/login.php"
+                  action="<?php echo baseUrl('login'); ?>"
                   class="login-form">
 
                 <!-- EMAIL -->
@@ -219,9 +240,7 @@
                         <input
                             type="email"
                             name="email"
-
                             placeholder="Entrez votre email"
-
                             required
                         >
 
@@ -244,9 +263,7 @@
                         <input
                             type="password"
                             name="password"
-
                             placeholder="Entrez votre mot de passe"
-
                             required
                         >
 
@@ -326,13 +343,14 @@
                     </span>
 
                 </button>
+
                 <!-- REGISTER LINK -->
 
                 <div class="register-link">
 
                     Vous n'avez pas de compte ?
 
-                    <a href="register.php">
+                    <a href="<?php echo baseUrl('register'); ?>">
                         Créer un compte
                     </a>
 
@@ -369,7 +387,7 @@
 
 </script>
 
-<script src="assets/js/login.js"></script>
+<script src="<?php echo assetUrl('js/login.js'); ?>"></script>
 
 </body>
 </html>
