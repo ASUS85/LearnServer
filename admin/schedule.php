@@ -311,6 +311,19 @@ $schedules = $pdo->query("
                     </span>
 
                 </a>
+                <li class="menu-item">
+
+                    <a href="notes.php">
+
+                        <i data-lucide="clipboard-list"></i>
+
+                        <span>
+                            Notes
+                        </span>
+
+                    </a>
+
+                </li>
 
             </li>
 

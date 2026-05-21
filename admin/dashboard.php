@@ -59,7 +59,7 @@ $totalSchedules = $pdo->query("
 <body>
 
 <!-- =========================
-     BACKGROUND EFFECTS
+     BACKGROUND EFFECTS   
 ========================= -->
 
 <div class="floating-elements">

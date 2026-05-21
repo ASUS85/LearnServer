@@ -1,276 +1,375 @@
 <?php
-session_start();
-require_once("../config/database.php");
 
-/* =========================================================
-   SECURITE ADMIN
-========================================================= */
+session_start();
 
 if(
     !isset($_SESSION['user_role']) ||
     $_SESSION['user_role'] != 'admin'
 ){
+
     header("Location: ../index.php");
     exit;
-}
-
-/* =========================================================
-   CREATION TABLE SETTINGS
-========================================================= */
-
-$pdo->exec("
-
-CREATE TABLE IF NOT EXISTS settings(
-
-    id INT PRIMARY KEY AUTO_INCREMENT,
-
-    school_name VARCHAR(255),
-    school_email VARCHAR(255),
-    school_phone VARCHAR(100),
-    school_address TEXT,
-    school_logo VARCHAR(255),
-
-    academic_year VARCHAR(100),
-    current_semester VARCHAR(50),
-
-    theme VARCHAR(50),
-    primary_color VARCHAR(50),
-
-    show_logo TINYINT(1) DEFAULT 1,
-    show_signature TINYINT(1) DEFAULT 1,
-    show_stamp TINYINT(1) DEFAULT 1,
-
-    smtp_host VARCHAR(255),
-    smtp_port VARCHAR(50),
-    smtp_email VARCHAR(255),
-    smtp_password VARCHAR(255),
-
-    session_timeout INT DEFAULT 30,
-    max_login_attempts INT DEFAULT 5,
-
-    notifications_email TINYINT(1) DEFAULT 1,
-    notifications_system TINYINT(1) DEFAULT 1,
-
-    updated_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP
-    ON UPDATE CURRENT_TIMESTAMP
-
-)
-
-");
-
-/* =========================================================
-   INSERT DEFAULT SETTINGS
-========================================================= */
-
-$check = $pdo->query("
-    SELECT *
-    FROM settings
-    LIMIT 1
-");
-
-if($check->rowCount() == 0){
-
-    $pdo->exec("
-
-    INSERT INTO settings(
-
-        school_name,
-        school_email,
-        school_phone,
-        school_address,
-        academic_year,
-        current_semester,
-        theme,
-        primary_color
-
-    )
-
-    VALUES(
-
-        'EduManage University',
-        'contact@edumanage.com',
-        '+237 600000000',
-        'Douala Cameroun',
-        '2025 - 2026',
-        'Semestre 1',
-        'dark',
-        'blue'
-
-    )
-
-    ");
 
 }
 
+require_once("../config/database.php");
+
 /* =========================================================
-   RECUPERATION SETTINGS
+   VARIABLES
 ========================================================= */
-
-$stmt = $pdo->query("
-    SELECT *
-    FROM settings
-    LIMIT 1
-");
-
-$settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $message = "";
 $error = "";
 
+$admin_id = $_SESSION['user_id'];
+
 /* =========================================================
-   SAVE SETTINGS
+   RECUPERATION ADMIN
 ========================================================= */
 
-if(isset($_POST['save_settings'])){
+$stmt = $pdo->prepare("
+    SELECT *
+    FROM admins
+    WHERE id = ?
+");
 
-    $school_name = trim($_POST['school_name']);
-    $school_email = trim($_POST['school_email']);
-    $school_phone = trim($_POST['school_phone']);
-    $school_address = trim($_POST['school_address']);
+$stmt->execute([$admin_id]);
 
-    $academic_year = trim($_POST['academic_year']);
-    $current_semester = trim($_POST['current_semester']);
+$admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if(!$admin){
+
+    session_destroy();
+
+    header("Location: ../index.php");
+    exit;
+
+}
+
+/* =========================================================
+   SECURITE ANTI BRUTE FORCE
+========================================================= */
+
+if(!isset($_SESSION['login_attempts'])){
+
+    $_SESSION['login_attempts'] = 0;
+
+}
+
+if(!isset($_SESSION['last_attempt'])){
+
+    $_SESSION['last_attempt'] = time();
+
+}
+
+if(
+    $_SESSION['login_attempts'] >= 5 &&
+    (time() - $_SESSION['last_attempt']) < 300
+){
+
+    die("Trop de tentatives. Réessayez dans 5 minutes.");
+
+}
+
+/* =========================================================
+   UPDATE PROFIL
+========================================================= */
+
+if(isset($_POST['save_profile'])){
+
+    $nom = trim($_POST['nom']);
+    $prenom = trim($_POST['prenom']);
+    $email = trim($_POST['email']);
+    $telephone = trim($_POST['telephone']);
     $theme = trim($_POST['theme']);
-    $primary_color = trim($_POST['primary_color']);
-
-    $smtp_host = trim($_POST['smtp_host']);
-    $smtp_port = trim($_POST['smtp_port']);
-    $smtp_email = trim($_POST['smtp_email']);
-    $smtp_password = trim($_POST['smtp_password']);
-
-    $session_timeout = intval($_POST['session_timeout']);
-    $max_login_attempts = intval($_POST['max_login_attempts']);
-
-    $show_logo = isset($_POST['show_logo']) ? 1 : 0;
-    $show_signature = isset($_POST['show_signature']) ? 1 : 0;
-    $show_stamp = isset($_POST['show_stamp']) ? 1 : 0;
-
-    $notifications_email =
-        isset($_POST['notifications_email']) ? 1 : 0;
-
-    $notifications_system =
-        isset($_POST['notifications_system']) ? 1 : 0;
-
-    /* =====================================================
-       LOGO UPLOAD
-    ===================================================== */
-
-    $logo_name = $settings['school_logo'];
 
     if(
-        isset($_FILES['school_logo']) &&
-        $_FILES['school_logo']['error'] == 0
+        empty($nom) ||
+        empty($email)
     ){
 
-        $upload_dir = "../uploads/";
+        $error = "Veuillez remplir tous les champs obligatoires.";
 
-        if(!is_dir($upload_dir)){
-            mkdir($upload_dir);
+    }elseif(!filter_var($email,FILTER_VALIDATE_EMAIL)){
+
+        $error = "Email invalide.";
+
+    }else{
+
+        $check = $pdo->prepare("
+            SELECT id
+            FROM admins
+            WHERE email = ?
+            AND id != ?
+        ");
+
+        $check->execute([$email,$admin_id]);
+
+        if($check->rowCount() > 0){
+
+            $error = "Cet email existe déjà.";
+
+        }else{
+
+            /* =========================================
+               UPLOAD PHOTO
+            ========================================= */
+
+            $photo_name = $admin['photo'];
+
+            if(
+                isset($_FILES['photo']) &&
+                $_FILES['photo']['error'] == 0
+            ){
+
+                $allowed = [
+
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp'
+
+                ];
+
+                if(
+                    in_array(
+                        $_FILES['photo']['type'],
+                        $allowed
+                    )
+                ){
+
+                    $extension = pathinfo(
+                        $_FILES['photo']['name'],
+                        PATHINFO_EXTENSION
+                    );
+
+                    $photo_name =
+                        "admin_" .
+                        time() .
+                        "." .
+                        $extension;
+
+                    move_uploaded_file(
+
+                        $_FILES['photo']['tmp_name'],
+
+                        "../uploads/profiles/" .
+                        $photo_name
+
+                    );
+
+                }
+
+            }
+
+            $update = $pdo->prepare("
+                UPDATE admins
+                SET
+                    nom = ?,
+                    prenom = ?,
+                    email = ?,
+                    telephone = ?,
+                    photo = ?,
+                    theme = ?
+                WHERE id = ?
+            ");
+
+            $update->execute([
+
+                htmlspecialchars($nom),
+                htmlspecialchars($prenom),
+                htmlspecialchars($email),
+                htmlspecialchars($telephone),
+                $photo_name,
+                $theme,
+                $admin_id
+
+            ]);
+
+            $_SESSION['user_nom'] = $nom;
+
+            $message = "Profil mis à jour avec succès.";
+
         }
-
-        $file_name =
-            time() . "_" .
-            basename($_FILES['school_logo']['name']);
-
-        $target =
-            $upload_dir . $file_name;
-
-        move_uploaded_file(
-            $_FILES['school_logo']['tmp_name'],
-            $target
-        );
-
-        $logo_name = $file_name;
 
     }
 
-    /* =====================================================
-       UPDATE
-    ===================================================== */
+}
 
-    $sql = "
+/* =========================================================
+   CHANGEMENT MOT DE PASSE
+========================================================= */
 
-    UPDATE settings SET
+if(isset($_POST['change_password'])){
 
-        school_name = ?,
-        school_email = ?,
-        school_phone = ?,
-        school_address = ?,
-        school_logo = ?,
+    $current_password = $_POST['current_password'];
 
-        academic_year = ?,
-        current_semester = ?,
+    $new_password = $_POST['new_password'];
 
-        theme = ?,
-        primary_color = ?,
+    $confirm_password = $_POST['confirm_password'];
 
-        show_logo = ?,
-        show_signature = ?,
-        show_stamp = ?,
+    if(
+        empty($current_password) ||
+        empty($new_password) ||
+        empty($confirm_password)
+    ){
 
-        smtp_host = ?,
-        smtp_port = ?,
-        smtp_email = ?,
-        smtp_password = ?,
+        $error = "Veuillez remplir tous les champs.";
 
-        session_timeout = ?,
-        max_login_attempts = ?,
+    }elseif(
+        $current_password != $admin['mot_de_passe']
+    ){
 
-        notifications_email = ?,
-        notifications_system = ?
+        $_SESSION['login_attempts']++;
 
-    WHERE id = ?
+        $_SESSION['last_attempt'] = time();
 
-    ";
+        $error = "Mot de passe actuel incorrect.";
 
-    $update = $pdo->prepare($sql);
+    }elseif(strlen($new_password) < 6){
 
-    $update->execute([
+        $error = "Le mot de passe doit contenir au moins 6 caractères.";
 
-        $school_name,
-        $school_email,
-        $school_phone,
-        $school_address,
-        $logo_name,
+    }elseif($new_password != $confirm_password){
 
-        $academic_year,
-        $current_semester,
+        $error = "Les mots de passe ne correspondent pas.";
 
-        $theme,
-        $primary_color,
+    }else{
 
-        $show_logo,
-        $show_signature,
-        $show_stamp,
+        $_SESSION['login_attempts'] = 0;
 
-        $smtp_host,
-        $smtp_port,
-        $smtp_email,
-        $smtp_password,
+        $updatePassword = $pdo->prepare("
+            UPDATE admins
+            SET mot_de_passe = ?
+            WHERE id = ?
+        ");
 
-        $session_timeout,
-        $max_login_attempts,
+        $updatePassword->execute([
 
-        $notifications_email,
-        $notifications_system,
+            $new_password,
+            $admin_id
 
-        $settings['id']
+        ]);
+
+        $message = "Mot de passe modifié avec succès.";
+
+    }
+
+}
+
+/* =========================================================
+   DOUBLE AUTHENTIFICATION
+========================================================= */
+
+if(isset($_POST['toggle_2fa'])){
+
+    $twofa = isset($_POST['twofa']) ? 1 : 0;
+
+    $update2fa = $pdo->prepare("
+        UPDATE admins
+        SET two_factor_enabled = ?
+        WHERE id = ?
+    ");
+
+    $update2fa->execute([
+
+        $twofa,
+        $admin_id
 
     ]);
 
-    $message = "Paramètres enregistrés avec succès.";
-
-    $stmt = $pdo->query("
-        SELECT *
-        FROM settings
-        LIMIT 1
-    ");
-
-    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $message = "Paramètre double authentification mis à jour.";
 
 }
+
+/* =========================================================
+   NOTIFICATIONS ADMIN
+========================================================= */
+
+if(isset($_POST['save_notifications'])){
+
+    $email_notifications =
+        isset($_POST['email_notifications']) ? 1 : 0;
+
+    $security_alerts =
+        isset($_POST['security_alerts']) ? 1 : 0;
+
+    $system_updates =
+        isset($_POST['system_updates']) ? 1 : 0;
+
+    $notif = $pdo->prepare("
+        UPDATE admins
+        SET
+            email_notifications = ?,
+            security_alerts = ?,
+            system_updates = ?
+        WHERE id = ?
+    ");
+
+    $notif->execute([
+
+        $email_notifications,
+        $security_alerts,
+        $system_updates,
+        $admin_id
+
+    ]);
+
+    $message = "Préférences notifications enregistrées.";
+
+}
+
+/* =========================================================
+   ACTIVITE CONNEXION
+========================================================= */
+
+$logs = $pdo->prepare("
+    SELECT *
+    FROM login_logs
+    WHERE admin_id = ?
+    ORDER BY login_time DESC
+    LIMIT 10
+");
+
+$logs->execute([$admin_id]);
+
+$activities = $logs->fetchAll(PDO::FETCH_ASSOC);
+
+/* =========================================================
+   SESSIONS ACTIVES
+========================================================= */
+
+$sessions = $pdo->prepare("
+    SELECT *
+    FROM active_sessions
+    WHERE admin_id = ?
+    ORDER BY last_activity DESC
+");
+
+$sessions->execute([$admin_id]);
+
+$active_sessions = $sessions->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+$total_students = $pdo->query("
+    SELECT COUNT(*) FROM etudiants
+")->fetchColumn();
+
+$total_teachers = $pdo->query("
+    SELECT COUNT(*) FROM enseignants
+")->fetchColumn();
+
+$total_subjects = $pdo->query("
+    SELECT COUNT(*) FROM matieres
+")->fetchColumn();
+
+$total_notes = $pdo->query("
+    SELECT COUNT(*) FROM notes
+")->fetchColumn();
 
 ?>
 
@@ -279,75 +378,114 @@ if(isset($_POST['save_settings'])){
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<title>Paramètres Avancés</title>
+    <title>Paramètres Administrateur</title>
 
-<link rel="stylesheet"
-      href="../assets/css/settings.css">
+    <link rel="stylesheet"
+          href="../assets/css/settings.css">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
 
 </head>
 
 <body>
 
-<div class="container">
+<!-- =========================================================
+     BACKGROUND EFFECTS
+========================================================= -->
 
-<!-- =====================================================
+<div class="floating-elements">
+
+    <div class="floating circle-one"></div>
+    <div class="floating circle-two"></div>
+    <div class="floating square-one"></div>
+    <div class="floating square-two"></div>
+    <div class="floating line-one"></div>
+
+</div>
+
+<div class="app-container">
+
+<!-- =========================================================
      SIDEBAR
-===================================================== -->
+========================================================= -->
 
 <aside class="sidebar">
 
     <div>
 
-        <h2 class="logo">
-            EduManage
-        </h2>
+        <div class="brand">
+
+            <div class="logo-box">
+                🎓
+            </div>
+
+            <div>
+
+                <h2 class="logo">
+                    EduManage
+                </h2>
+
+                <p class="logo-subtitle">
+                    Administration Panel
+                </p>
+
+            </div>
+
+        </div>
 
         <ul class="menu">
 
             <li class="menu-item">
                 <a href="dashboard.php">
-                    🏠 Dashboard
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
                 </a>
             </li>
 
             <li class="menu-item">
                 <a href="students.php">
-                    🎓 Étudiants
+                    <i data-lucide="graduation-cap"></i>
+                    <span>Étudiants</span>
                 </a>
             </li>
 
             <li class="menu-item">
                 <a href="teachers.php">
-                    👨‍🏫 Enseignants
+                    <i data-lucide="users"></i>
+                    <span>Enseignants</span>
                 </a>
             </li>
 
             <li class="menu-item">
                 <a href="subjects.php">
-                    📚 Matières
+                    <i data-lucide="book-open"></i>
+                    <span>Matières</span>
                 </a>
             </li>
 
             <li class="menu-item">
                 <a href="schedule.php">
-                    📅 Emploi du Temps
+                    <i data-lucide="calendar-days"></i>
+                    <span>Emploi du Temps</span>
                 </a>
             </li>
 
             <li class="menu-item">
                 <a href="notes.php">
-                    📝 Notes
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Notes</span>
                 </a>
             </li>
 
             <li class="menu-item active">
                 <a href="settings.php">
-                    ⚙️ Paramètres
+                    <i data-lucide="settings"></i>
+                    <span>Paramètres</span>
                 </a>
             </li>
 
@@ -355,42 +493,58 @@ if(isset($_POST['save_settings'])){
 
     </div>
 
-    <a href="../api/logout.php"
-       class="logout-btn">
+   <!-- FOOTER -->
 
-        🚪 Déconnexion
+    <div class="sidebar-footer">
 
-    </a>
+        <div class="admin-profile">
 
-</aside>
+            <div class="avatar">
+                A
+            </div>
 
-<!-- =====================================================
-     MAIN CONTENT
-===================================================== -->
+            <div>
 
-<main class="main-content">
+                <h4>
+                    <?php echo $_SESSION['user_nom']; ?>
+                </h4>
 
-    <div class="topbar">
+                <span>
+                    Administrateur
+                </span>
 
-        <div>
-
-            <h1>
-                Paramètres Avancés
-            </h1>
-
-            <p>
-                Configuration complète du système académique
-            </p>
+            </div>
 
         </div>
 
+        <a href="../api/logout.php"
+           class="logout-btn">
+
+            <i data-lucide="log-out"></i>
+
+            Déconnexion
+
+        </a>
+
     </div>
+
+</aside>
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
+<main class="main-content">
+
+    <!-- ALERTS -->
 
     <?php if(!empty($message)): ?>
 
         <div class="success-message">
 
-            <?= $message; ?>
+            <i data-lucide="badge-check"></i>
+
+            <?= htmlspecialchars($message); ?>
 
         </div>
 
@@ -400,399 +554,310 @@ if(isset($_POST['save_settings'])){
 
         <div class="error-message">
 
-            <?= $error; ?>
+            <i data-lucide="alert-circle"></i>
+
+            <?= htmlspecialchars($error); ?>
 
         </div>
 
     <?php endif; ?>
 
-<form method="POST"
-      enctype="multipart/form-data">
+    <!-- HEADER -->
 
-<!-- =====================================================
-     ETABLISSEMENT
-===================================================== -->
+    <div class="page-header">
 
-<div class="settings-card">
+        <div class="header-info">
 
-    <h2>
-        🏫 Informations Établissement
-    </h2>
+            <span class="badge-accent">
+                Configuration avancée
+            </span>
 
-    <div class="form-grid">
+            <h1>
+                Paramètres Administrateur
+            </h1>
 
-        <div class="form-group">
-
-            <label>
-                Nom Établissement
-            </label>
-
-            <input type="text"
-                   name="school_name"
-
-                   value="<?= htmlspecialchars($settings['school_name']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                Email
-            </label>
-
-            <input type="email"
-                   name="school_email"
-
-                   value="<?= htmlspecialchars($settings['school_email']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                Téléphone
-            </label>
-
-            <input type="text"
-                   name="school_phone"
-
-                   value="<?= htmlspecialchars($settings['school_phone']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                Année Académique
-            </label>
-
-            <input type="text"
-                   name="academic_year"
-
-                   value="<?= htmlspecialchars($settings['academic_year']); ?>">
+            <p>
+                Gérez votre profil, votre sécurité et les statistiques globales.
+            </p>
 
         </div>
 
     </div>
 
-    <div class="form-group">
+    <!-- STATS -->
 
-        <label>
-            Adresse
-        </label>
+    <div class="stats-grid">
 
-        <textarea name="school_address"><?= htmlspecialchars($settings['school_address']); ?></textarea>
+        <div class="stat-card glass-panel">
 
-    </div>
+            <div class="stat-icon blue">
+                <i data-lucide="graduation-cap"></i>
+            </div>
 
-</div>
+            <div class="stat-details">
 
-<!-- =====================================================
-     LOGO
-===================================================== -->
+                <h3>Étudiants</h3>
 
-<div class="settings-card">
+                <p class="stat-number">
 
-    <h2>
-        🖼 Logo Établissement
-    </h2>
+                    <?= $total_students; ?>
 
-    <?php if(!empty($settings['school_logo'])): ?>
+                </p>
 
-        <img
-            src="../uploads/<?= $settings['school_logo']; ?>"
-            class="logo-preview"
-        >
-
-    <?php endif; ?>
-
-    <div class="form-group">
-
-        <label>
-            Choisir un logo
-        </label>
-
-        <input type="file"
-               name="school_logo">
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     APPARENCE
-===================================================== -->
-
-<div class="settings-card">
-
-    <h2>
-        🎨 Apparence
-    </h2>
-
-    <div class="form-grid">
-
-        <div class="form-group">
-
-            <label>
-                Thème
-            </label>
-
-            <select name="theme">
-
-                <option value="dark">
-                    Dark
-                </option>
-
-                <option value="light">
-                    Light
-                </option>
-
-            </select>
+            </div>
 
         </div>
 
-        <div class="form-group">
+        <div class="stat-card glass-panel">
 
-            <label>
-                Couleur Principale
-            </label>
+            <div class="stat-icon purple">
+                <i data-lucide="users"></i>
+            </div>
 
-            <select name="primary_color">
+            <div class="stat-details">
 
-                <option value="blue">
-                    Bleu
-                </option>
+                <h3>Enseignants</h3>
 
-                <option value="green">
-                    Vert
-                </option>
+                <p class="stat-number">
 
-                <option value="purple">
-                    Violet
-                </option>
+                    <?= $total_teachers; ?>
 
-            </select>
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="stat-card glass-panel">
+
+            <div class="stat-icon orange">
+                <i data-lucide="book-open"></i>
+            </div>
+
+            <div class="stat-details">
+
+                <h3>Matières</h3>
+
+                <p class="stat-number">
+
+                    <?= $total_subjects; ?>
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="stat-card glass-panel">
+
+            <div class="stat-icon green">
+                <i data-lucide="clipboard-check"></i>
+            </div>
+
+            <div class="stat-details">
+
+                <h3>Notes</h3>
+
+                <p class="stat-number">
+
+                    <?= $total_notes; ?>
+
+                </p>
+
+            </div>
 
         </div>
 
     </div>
 
-</div>
+    <!-- SETTINGS GRID -->
 
-<!-- =====================================================
-     IMPRESSION
-===================================================== -->
+    <div class="settings-grid">
 
-<div class="settings-card">
+        <!-- PROFILE -->
 
-    <h2>
-        🖨 Paramètres Impression
-    </h2>
+        <div class="glass-panel settings-card">
 
-    <div class="checkbox-group">
+            <div class="card-header">
 
-        <label>
+                <div>
 
-            <input type="checkbox"
-                   name="show_logo"
+                    <h2>
+                        Informations du Profil
+                    </h2>
 
-                   <?= $settings['show_logo'] ? 'checked' : ''; ?>>
+                    <p>
+                        Modifiez vos informations personnelles
+                    </p>
 
-            Afficher Logo
+                </div>
 
-        </label>
+                <div class="card-icon">
+                    <i data-lucide="user-circle"></i>
+                </div>
 
-        <label>
+            </div>
 
-            <input type="checkbox"
-                   name="show_signature"
+            <form method="POST"
+                  class="premium-form">
 
-                   <?= $settings['show_signature'] ? 'checked' : ''; ?>>
+                <div class="form-row">
 
-            Afficher Signature
+                    <div class="form-group">
 
-        </label>
+                        <label>Nom</label>
 
-        <label>
+                        <input
+                            type="text"
+                            name="nom"
+                            class="form-control"
 
-            <input type="checkbox"
-                   name="show_stamp"
+                            value="<?= htmlspecialchars($admin['nom']); ?>"
 
-                   <?= $settings['show_stamp'] ? 'checked' : ''; ?>>
+                            required
+                        >
 
-            Afficher Cachet
+                    </div>
 
-        </label>
+                    <div class="form-group">
+
+                        <label>Prénom</label>
+
+                        <input
+                            type="text"
+                            name="prenom"
+                            class="form-control"
+
+                            value="<?= htmlspecialchars($admin['prenom']); ?>"
+
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Email</label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+
+                        value="<?= htmlspecialchars($admin['email']); ?>"
+
+                        required
+                    >
+
+                </div>
+
+                <button type="submit"
+                        name="update_profile"
+                        class="btn-save">
+
+                    <i data-lucide="save"></i>
+
+                    Sauvegarder les modifications
+
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- SECURITY -->
+
+        <div class="glass-panel settings-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>
+                        Sécurité du Compte
+                    </h2>
+
+                    <p>
+                        Modifiez votre mot de passe administrateur
+                    </p>
+
+                </div>
+
+                <div class="card-icon purple-bg">
+                    <i data-lucide="shield-check"></i>
+                </div>
+
+            </div>
+
+            <form method="POST"
+                  class="premium-form">
+
+                <div class="form-group">
+
+                    <label>Mot de passe actuel</label>
+
+                    <input
+                        type="password"
+                        name="current_password"
+                        class="form-control"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Nouveau mot de passe</label>
+
+                    <input
+                        type="password"
+                        name="new_password"
+                        class="form-control"
+                        required
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Confirmer le mot de passe</label>
+
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        class="form-control"
+                        required
+                    >
+
+                </div>
+
+                <button type="submit"
+                        name="update_password"
+                        class="btn-save purple-btn">
+
+                    <i data-lucide="lock"></i>
+
+                    Modifier le mot de passe
+
+                </button>
+
+            </form>
+
+        </div>
 
     </div>
-
-</div>
-
-<!-- =====================================================
-     SMTP
-===================================================== -->
-
-<div class="settings-card">
-
-    <h2>
-        📧 SMTP / Email
-    </h2>
-
-    <div class="form-grid">
-
-        <div class="form-group">
-
-            <label>
-                SMTP Host
-            </label>
-
-            <input type="text"
-                   name="smtp_host"
-
-                   value="<?= htmlspecialchars($settings['smtp_host']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                SMTP Port
-            </label>
-
-            <input type="text"
-                   name="smtp_port"
-
-                   value="<?= htmlspecialchars($settings['smtp_port']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                SMTP Email
-            </label>
-
-            <input type="email"
-                   name="smtp_email"
-
-                   value="<?= htmlspecialchars($settings['smtp_email']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                SMTP Password
-            </label>
-
-            <input type="password"
-                   name="smtp_password"
-
-                   value="<?= htmlspecialchars($settings['smtp_password']); ?>">
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     SECURITE
-===================================================== -->
-
-<div class="settings-card">
-
-    <h2>
-        🔒 Sécurité
-    </h2>
-
-    <div class="form-grid">
-
-        <div class="form-group">
-
-            <label>
-                Timeout Session
-            </label>
-
-            <input type="number"
-                   name="session_timeout"
-
-                   value="<?= htmlspecialchars($settings['session_timeout']); ?>">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                Tentatives Connexion
-            </label>
-
-            <input type="number"
-                   name="max_login_attempts"
-
-                   value="<?= htmlspecialchars($settings['max_login_attempts']); ?>">
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     NOTIFICATIONS
-===================================================== -->
-
-<div class="settings-card">
-
-    <h2>
-        🔔 Notifications
-    </h2>
-
-    <div class="checkbox-group">
-
-        <label>
-
-            <input type="checkbox"
-                   name="notifications_email"
-
-                   <?= $settings['notifications_email'] ? 'checked' : ''; ?>>
-
-            Notifications Email
-
-        </label>
-
-        <label>
-
-            <input type="checkbox"
-                   name="notifications_system"
-
-                   <?= $settings['notifications_system'] ? 'checked' : ''; ?>>
-
-            Notifications Système
-
-        </label>
-
-    </div>
-
-</div>
-
-<!-- =====================================================
-     SAVE BUTTON
-===================================================== -->
-
-<button type="submit"
-        name="save_settings"
-        class="save-btn">
-
-    💾 Enregistrer Tous les Paramètres
-
-</button>
-
-</form>
 
 </main>
 
 </div>
+
+<script>
+
+    lucide.createIcons();
+
+</script>
 
 </body>
 </html>
