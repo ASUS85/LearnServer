@@ -130,6 +130,11 @@ class Teacher extends User {
      * Créer un enseignant
      */
     public function create($data) {
+        $rawPassword = trim((string)($data['mot_de_passe'] ?? ''));
+        if ($rawPassword === '') {
+            $rawPassword = defaultUserPassword();
+        }
+
         $stmt = $this->pdo->prepare("
             INSERT INTO {$this->table}(
                 matricule,
@@ -147,7 +152,7 @@ class Teacher extends User {
             $data['nom'],
             $data['prenom'],
             $data['email'],
-            isset($data['mot_de_passe']) ? hashPassword($data['mot_de_passe']) : null,
+            hashPassword($rawPassword),
             $data['telephone'] ?? null
         ]);
     }

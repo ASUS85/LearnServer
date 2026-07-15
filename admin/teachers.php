@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_role'])) {
 }
 
 require_once("../config/database.php");
+require_once '../app/helpers/helpers.php';
 
 $message = "";
 $error = "";
@@ -19,11 +20,15 @@ if(isset($_POST['add_teacher'])){
     $nom = trim($_POST['nom']);
     $prenom = trim($_POST['prenom']);
     $email = trim($_POST['email']);
-    $mot_de_passe = trim($_POST['mot_de_passe']);
+    $mot_de_passe = trim($_POST['mot_de_passe'] ?? '');
     $telephone = trim($_POST['telephone']);
     $specialite = trim($_POST['specialite']);
 
-    if(!empty($matricule) && !empty($nom) && !empty($prenom) && !empty($email) && !empty($mot_de_passe)){
+    if($mot_de_passe === ''){
+        $mot_de_passe = defaultUserPassword();
+    }
+
+    if(!empty($matricule) && !empty($nom) && !empty($prenom) && !empty($email)){
         $check = $pdo->prepare("SELECT id FROM enseignants WHERE email = ?");
         $check->execute([$email]);
 
@@ -368,8 +373,16 @@ $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <input type="text" name="telephone" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label>Mot de passe</label>
-                        <input type="password" name="mot_de_passe" class="form-control" required>
+                        <label>Mot de passe par défaut</label>
+                        <input type="text"
+                               name="default_password_display"
+                               class="form-control"
+                               value="<?php echo htmlspecialchars(defaultUserPassword()); ?>"
+                               readonly>
+                        <input type="hidden"
+                               name="mot_de_passe"
+                               value="<?php echo htmlspecialchars(defaultUserPassword()); ?>">
+                        <small>Ce mot de passe est appliqué automatiquement au nouvel enseignant.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

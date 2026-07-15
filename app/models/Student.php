@@ -32,6 +32,11 @@ class Student extends User {
      * Créer un étudiant
      */
     public function create($data) {
+        $rawPassword = trim((string)($data['mot_de_passe'] ?? ''));
+        if ($rawPassword === '') {
+            $rawPassword = defaultUserPassword();
+        }
+
         $stmt = $this->pdo->prepare("
             INSERT INTO {$this->table}(
                 matricule,
@@ -51,7 +56,7 @@ class Student extends User {
             $data['nom'],
             $data['prenom'],
             $data['email'],
-            isset($data['mot_de_passe']) ? hashPassword($data['mot_de_passe']) : null,
+            hashPassword($rawPassword),
             $data['telephone'] ?? null,
             $data['filiere_id'] ?? null,
             $data['niveau_id'] ?? null
@@ -98,7 +103,7 @@ class Student extends User {
             FROM notes n
             LEFT JOIN matieres m ON n.matiere_id = m.id
             WHERE n.etudiant_id = ?
-            ORDER BY n.date_creation DESC
+            ORDER BY n.date_note DESC, n.id DESC
         ");
         $stmt->execute([$studentId]);
 

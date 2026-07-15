@@ -125,6 +125,13 @@ function hashPassword($password) {
 }
 
 /**
+ * Mot de passe par défaut pour les comptes créés par l'admin
+ */
+function defaultUserPassword() {
+    return 'EduManage@2026';
+}
+
+/**
  * Vérifier un mot de passe
  */
 function verifyPassword($password, $hash) {

@@ -278,6 +278,17 @@ $niveaux = $niveaux ?? [];
             </div>
 
             <div class="form-group">
+                <label>Mot de passe par défaut</label>
+                <input type="text"
+                       value="<?php echo htmlspecialchars(defaultUserPassword()); ?>"
+                       readonly>
+                <small>Ce mot de passe est attribué automatiquement au nouvel utilisateur.</small>
+                <input type="hidden"
+                       name="mot_de_passe"
+                       value="<?php echo htmlspecialchars(defaultUserPassword()); ?>">
+            </div>
+
+            <div class="form-group">
 
                 <button type="submit"
                         name="add_student"

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once '../app/helpers/helpers.php';
 /* =========================
    FILIERES
 ========================= */
@@ -47,8 +48,15 @@ if(isset($_POST['add_student'])){
     $nom = $_POST['nom'];
     $prenom = $_POST['prenom'];
     $email = $_POST['email'];
+    $mot_de_passe = trim($_POST['mot_de_passe'] ?? '');
     $filiere_id = $_POST['filiere_id'];
     $niveau_id = $_POST['niveau_id'];
+
+    if ($mot_de_passe === '') {
+        $mot_de_passe = defaultUserPassword();
+    }
+
+    $passwordHash = password_hash($mot_de_passe, PASSWORD_DEFAULT);
 
     $insert = $pdo->prepare("
         INSERT INTO etudiants(
@@ -56,10 +64,11 @@ if(isset($_POST['add_student'])){
             nom,
             prenom,
             email,
+            mot_de_passe,
             filiere_id,
             niveau_id
         )
-        VALUES(?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?)
     ");
 
     $insert->execute([
@@ -67,6 +76,7 @@ if(isset($_POST['add_student'])){
         $nom,
         $prenom,
         $email,
+        $passwordHash,
         $filiere_id,
         $niveau_id
     ]);
@@ -537,6 +547,18 @@ $students = $stmt->fetchAll();
                         <?php endforeach; ?>
                     </select>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe par défaut</label>
+                <input type="text"
+                       class="form-control"
+                       value="<?php echo htmlspecialchars(defaultUserPassword()); ?>"
+                       readonly>
+                <input type="hidden"
+                       name="mot_de_passe"
+                       value="<?php echo htmlspecialchars(defaultUserPassword()); ?>">
+                <small>Ce mot de passe est appliqué automatiquement au nouvel étudiant.</small>
             </div>
 
             <div class="modal-footer">
