@@ -6,6 +6,9 @@
  * $filieres - Liste des filières
  * $niveaux  - Liste des niveaux
  */
+$students = $students ?? [];
+$filieres = $filieres ?? [];
+$niveaux = $niveaux ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -75,7 +78,7 @@
     <div class="floating globe"></div>
 </div>
 
-<div class="container">
+<div class="app-container">
 
     <!-- SIDEBAR -->
     <?php include basePath('app/views/layouts/admin_sidebar.php'); ?>

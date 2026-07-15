@@ -242,7 +242,7 @@
 
                 </a>
 
-                <a href="<?php echo baseUrl('admin/subjects'); ?>"
+                     <a href="/LearnServer/admin/subjects.php"
                    class="action-btn">
 
                     <i data-lucide="plus-circle"></i>
@@ -253,7 +253,7 @@
 
                 </a>
 
-                <a href="<?php echo baseUrl('admin/schedule'); ?>"
+                     <a href="/LearnServer/admin/schedule.php"
                    class="action-btn">
 
                     <i data-lucide="plus-circle"></i>

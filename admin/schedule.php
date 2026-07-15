@@ -92,6 +92,81 @@ if(isset($_POST['add_schedule'])){
 }
 
 /* =========================
+   MODIFICATION EMPLOI DE TEMPS
+========================= */
+
+if(isset($_POST['update_schedule'])){
+
+    $id = intval($_POST['schedule_id'] ?? 0);
+
+    $matiere_id = intval($_POST['matiere_id'] ?? 0);
+    $enseignant_id = intval($_POST['enseignant_id'] ?? 0);
+    $filiere_id = intval($_POST['filiere_id'] ?? 0);
+    $niveau_id = intval($_POST['niveau_id'] ?? 0);
+
+    $jour = trim($_POST['jour'] ?? '');
+
+    $heure_debut = $_POST['heure_debut'] ?? '';
+    $heure_fin = $_POST['heure_fin'] ?? '';
+
+    $salle = trim($_POST['salle'] ?? '');
+    $type_cours = trim($_POST['type_cours'] ?? '');
+    $semestre = trim($_POST['semestre'] ?? '');
+
+    if(
+        $id > 0 &&
+        $matiere_id > 0 &&
+        $enseignant_id > 0 &&
+        $filiere_id > 0 &&
+        $niveau_id > 0 &&
+        $jour !== '' &&
+        $heure_debut !== '' &&
+        $heure_fin !== ''
+    ){
+
+        $sql = "
+            UPDATE emplois_temps
+            SET
+                matiere_id = ?,
+                enseignant_id = ?,
+                filiere_id = ?,
+                niveau_id = ?,
+                jour = ?,
+                heure_debut = ?,
+                heure_fin = ?,
+                salle = ?,
+                type_cours = ?,
+                semestre = ?
+            WHERE id = ?
+        ";
+
+        $stmt = $pdo->prepare($sql);
+
+        $stmt->execute([
+            $matiere_id,
+            $enseignant_id,
+            $filiere_id,
+            $niveau_id,
+            $jour,
+            $heure_debut,
+            $heure_fin,
+            $salle,
+            $type_cours,
+            $semestre,
+            $id
+        ]);
+
+        $message = "Cours modifié avec succès.";
+
+    }else{
+
+        $error = "Veuillez remplir tous les champs.";
+
+    }
+
+}
+
+/* =========================
    SUPPRESSION
 ========================= */
 
@@ -109,6 +184,18 @@ if(isset($_GET['delete']) && is_numeric($_GET['delete'])){
     $stmt->execute([$id]);
 
     $message = "Cours supprimé avec succès.";
+
+}
+
+$edit_schedule = null;
+
+if(isset($_GET['edit']) && is_numeric($_GET['edit'])){
+
+    $id = intval($_GET['edit']);
+
+    $stmt = $pdo->prepare("SELECT * FROM emplois_temps WHERE id = ? LIMIT 1");
+    $stmt->execute([$id]);
+    $edit_schedule = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
 }
 
@@ -334,7 +421,7 @@ $schedules = $pdo->query("
                     <i data-lucide="settings"></i>
 
                     <span>
-                        Paramètres
+                        Profile
                     </span>
 
                 </a>
@@ -679,6 +766,16 @@ $schedules = $pdo->query("
                                 <div class="actions">
 
                                     <a
+                                        href="?edit=<?= $schedule['id']; ?>"
+                                        class="edit-btn"
+                                        title="Modifier ce cours"
+                                    >
+
+                                        <i data-lucide="pencil"></i>
+
+                                    </a>
+
+                                    <a
                                         href="?delete=<?= $schedule['id']; ?>"
                                         class="delete-btn"
 
@@ -734,7 +831,7 @@ $schedules = $pdo->query("
         <div class="modal-header">
 
             <h2>
-                Ajouter un Cours
+                <?= $edit_schedule ? 'Modifier un Cours' : 'Ajouter un Cours'; ?>
             </h2>
 
             <span class="close"
@@ -747,6 +844,10 @@ $schedules = $pdo->query("
         </div>
 
         <form method="POST">
+
+            <?php if($edit_schedule): ?>
+                <input type="hidden" name="schedule_id" value="<?= (int)$edit_schedule['id']; ?>">
+            <?php endif; ?>
 
             <div class="form-grid">
 
@@ -762,7 +863,8 @@ $schedules = $pdo->query("
 
                         <?php foreach($matieres as $matiere): ?>
 
-                            <option value="<?= $matiere['id']; ?>">
+                            <option value="<?= $matiere['id']; ?>"
+                                <?= ($edit_schedule && (int)$edit_schedule['matiere_id'] === (int)$matiere['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($matiere['nom_matiere']); ?>
 
@@ -786,7 +888,8 @@ $schedules = $pdo->query("
 
                         <?php foreach($enseignants as $enseignant): ?>
 
-                            <option value="<?= $enseignant['id']; ?>">
+                            <option value="<?= $enseignant['id']; ?>"
+                                <?= ($edit_schedule && (int)$edit_schedule['enseignant_id'] === (int)$enseignant['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($enseignant['nom']); ?>
 
@@ -808,7 +911,8 @@ $schedules = $pdo->query("
 
                         <?php foreach($filieres as $filiere): ?>
 
-                            <option value="<?= $filiere['id']; ?>">
+                            <option value="<?= $filiere['id']; ?>"
+                                <?= ($edit_schedule && (int)$edit_schedule['filiere_id'] === (int)$filiere['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($filiere['nom_filiere']); ?>
 
@@ -828,7 +932,8 @@ $schedules = $pdo->query("
 
                         <?php foreach($niveaux as $niveau): ?>
 
-                            <option value="<?= $niveau['id']; ?>">
+                            <option value="<?= $niveau['id']; ?>"
+                                <?= ($edit_schedule && (int)$edit_schedule['niveau_id'] === (int)$niveau['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($niveau['nom_niveau']); ?>
 
@@ -846,12 +951,12 @@ $schedules = $pdo->query("
 
                     <select name="jour" required>
 
-                        <option>Lundi</option>
-                        <option>Mardi</option>
-                        <option>Mercredi</option>
-                        <option>Jeudi</option>
-                        <option>Vendredi</option>
-                        <option>Samedi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Lundi') ? 'selected' : ''; ?>>Lundi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Mardi') ? 'selected' : ''; ?>>Mardi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Mercredi') ? 'selected' : ''; ?>>Mercredi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Jeudi') ? 'selected' : ''; ?>>Jeudi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Vendredi') ? 'selected' : ''; ?>>Vendredi</option>
+                        <option <?= ($edit_schedule && $edit_schedule['jour'] === 'Samedi') ? 'selected' : ''; ?>>Samedi</option>
 
                     </select>
 
@@ -863,10 +968,10 @@ $schedules = $pdo->query("
 
                     <select name="type_cours">
 
-                        <option>Cours</option>
-                        <option>TD</option>
-                        <option>TP</option>
-                        <option>Examen</option>
+                        <option <?= ($edit_schedule && $edit_schedule['type_cours'] === 'Cours') ? 'selected' : ''; ?>>Cours</option>
+                        <option <?= ($edit_schedule && $edit_schedule['type_cours'] === 'TD') ? 'selected' : ''; ?>>TD</option>
+                        <option <?= ($edit_schedule && $edit_schedule['type_cours'] === 'TP') ? 'selected' : ''; ?>>TP</option>
+                        <option <?= ($edit_schedule && $edit_schedule['type_cours'] === 'Examen') ? 'selected' : ''; ?>>Examen</option>
 
                     </select>
 
@@ -878,6 +983,7 @@ $schedules = $pdo->query("
 
                     <input type="time"
                            name="heure_debut"
+                              value="<?= $edit_schedule ? htmlspecialchars($edit_schedule['heure_debut']) : ''; ?>"
                            required>
 
                 </div>
@@ -888,6 +994,7 @@ $schedules = $pdo->query("
 
                     <input type="time"
                            name="heure_fin"
+                              value="<?= $edit_schedule ? htmlspecialchars($edit_schedule['heure_fin']) : ''; ?>"
                            required>
 
                 </div>
@@ -898,6 +1005,7 @@ $schedules = $pdo->query("
 
                     <input type="text"
                            name="salle"
+                              value="<?= $edit_schedule ? htmlspecialchars($edit_schedule['salle']) : ''; ?>"
                            required>
 
                 </div>
@@ -908,6 +1016,7 @@ $schedules = $pdo->query("
 
                     <input type="text"
                            name="semestre"
+                              value="<?= $edit_schedule ? htmlspecialchars($edit_schedule['semestre']) : ''; ?>"
                            placeholder="Semestre 1">
 
                 </div>
@@ -915,10 +1024,10 @@ $schedules = $pdo->query("
             </div>
 
             <button type="submit"
-                    name="add_schedule"
+                    name="<?= $edit_schedule ? 'update_schedule' : 'add_schedule'; ?>"
                     class="save-btn">
 
-                Ajouter le Cours
+                <?= $edit_schedule ? 'Mettre à jour le Cours' : 'Ajouter le Cours'; ?>
 
             </button>
 
@@ -955,6 +1064,10 @@ $schedules = $pdo->query("
         }
 
     }
+
+    <?php if($edit_schedule): ?>
+    openModal();
+    <?php endif; ?>
 
 </script>
 

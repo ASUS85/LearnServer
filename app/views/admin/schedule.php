@@ -22,7 +22,7 @@
     <div class="floating globe"></div>
 </div>
 
-<div class="container">
+<div class="app-container">
     <?php include basePath('app/views/layouts/admin_sidebar.php'); ?>
 
     <main class="main-content">

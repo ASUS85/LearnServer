@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Matières - EduManage</title>
-    <link rel="stylesheet" href="<?php echo assetUrl('css/students.css'); ?>">
+    <link rel="stylesheet" href="<?php echo assetUrl('css/subjects.css'); ?>">
     <link rel="stylesheet" href="<?php echo assetUrl('css/dashboardadmin.css'); ?>">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -22,7 +22,7 @@
     <div class="floating globe"></div>
 </div>
 
-<div class="container">
+<div class="app-container">
     <?php include basePath('app/views/layouts/admin_sidebar.php'); ?>
 
     <main class="main-content">

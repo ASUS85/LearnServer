@@ -138,15 +138,19 @@ if (preg_match('|^admin/(.*)$|', $path, $matches)) {
             }
             break;
         case 'subjects':
-            $admin->subjects();
+            header('Location: /LearnServer/admin/subjects.php');
+            exit;
             break;
         case 'schedule':
-            $admin->schedule();
+            header('Location: /LearnServer/admin/schedule.php');
+            exit;
             break;
         case 'notes':
-            $admin->notes();
+            header('Location: /LearnServer/admin/notes.php');
+            exit;
             break;
         case 'settings':
+        case 'profile':
             $admin->settings();
             break;
         default:
@@ -169,6 +173,15 @@ if (preg_match('|^student/(.*)$|', $path, $matches)) {
         case '':
             $student->dashboard();
             break;
+        case 'notes':
+            $student->notes();
+            break;
+        case 'schedule':
+            $student->schedule();
+            break;
+        case 'profile':
+            $student->profile();
+            break;
         default:
             http_response_code(404);
             die('Page non trouvée');
@@ -188,6 +201,12 @@ if (preg_match('|^teacher/(.*)$|', $path, $matches)) {
         case 'dashboard':
         case '':
             $teacher->dashboard();
+            break;
+        case 'schedule':
+            $teacher->schedule();
+            break;
+        case 'profile':
+            $teacher->profile();
             break;
         default:
             http_response_code(404);

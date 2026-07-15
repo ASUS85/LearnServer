@@ -72,6 +72,60 @@ if(isset($_POST['add_note'])){
 }
 
 /* =========================================================
+   MODIFICATION NOTE
+========================================================= */
+
+if(isset($_POST['update_note'])){
+
+    $id = intval($_POST['note_id'] ?? 0);
+    $etudiant_id = intval($_POST['etudiant_id'] ?? 0);
+    $matiere_id = intval($_POST['matiere_id'] ?? 0);
+
+    $note = trim($_POST['note'] ?? '');
+    $session_note = trim($_POST['session'] ?? '');
+    $date_note = $_POST['date_note'] ?? '';
+
+    if(
+        $id > 0 &&
+        $etudiant_id > 0 &&
+        $matiere_id > 0 &&
+        $note !== '' &&
+        $session_note !== ''
+    ){
+
+        $sql = "
+            UPDATE notes
+            SET
+                etudiant_id = ?,
+                matiere_id = ?,
+                note = ?,
+                session = ?,
+                date_note = ?
+            WHERE id = ?
+        ";
+
+        $stmt = $pdo->prepare($sql);
+
+        $stmt->execute([
+            $etudiant_id,
+            $matiere_id,
+            $note,
+            $session_note,
+            $date_note,
+            $id
+        ]);
+
+        $message = "Note modifiée avec succès.";
+
+    }else{
+
+        $error = "Veuillez remplir tous les champs.";
+
+    }
+
+}
+
+/* =========================================================
    SUPPRESSION
 ========================================================= */
 
@@ -89,6 +143,18 @@ if(isset($_GET['delete']) && is_numeric($_GET['delete'])){
     $stmt->execute([$id]);
 
     $message = "Note supprimée avec succès.";
+
+}
+
+$edit_note = null;
+
+if(isset($_GET['edit']) && is_numeric($_GET['edit'])){
+
+    $id = intval($_GET['edit']);
+
+    $stmt = $pdo->prepare("SELECT * FROM notes WHERE id = ? LIMIT 1");
+    $stmt->execute([$id]);
+    $edit_note = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
 }
 
@@ -291,7 +357,7 @@ if($total_notes > 0){
 
                     <i data-lucide="settings"></i>
 
-                    <span>Paramètres</span>
+                    <span>Profile</span>
 
                 </a>
             </li>
@@ -624,6 +690,15 @@ if($total_notes > 0){
 
                     <td class="actions-cell">
 
+                        <a href="?edit=<?= $note['id']; ?>"
+                           class="btn-icon edit"
+
+                           title="Modifier cette note">
+
+                            <i data-lucide="pencil"></i>
+
+                        </a>
+
                         <a href="?delete=<?= $note['id']; ?>"
                            class="btn-icon delete"
 
@@ -676,7 +751,7 @@ if($total_notes > 0){
         <div class="modal-header">
 
             <h2>
-                Ajouter une Note
+                <?= $edit_note ? 'Modifier la Note' : 'Ajouter une Note'; ?>
             </h2>
 
             <button class="close-btn"
@@ -690,6 +765,10 @@ if($total_notes > 0){
 
         <form method="POST"
               class="premium-form">
+
+            <?php if($edit_note): ?>
+                <input type="hidden" name="note_id" value="<?= (int)$edit_note['id']; ?>">
+            <?php endif; ?>
 
             <div class="form-row">
 
@@ -707,7 +786,8 @@ if($total_notes > 0){
 
                         <?php foreach($students as $student): ?>
 
-                            <option value="<?= $student['id']; ?>">
+                            <option value="<?= $student['id']; ?>"
+                                <?= ($edit_note && (int)$edit_note['etudiant_id'] === (int)$student['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($student['nom']); ?>
 
@@ -735,7 +815,8 @@ if($total_notes > 0){
 
                         <?php foreach($subjects as $subject): ?>
 
-                            <option value="<?= $subject['id']; ?>">
+                            <option value="<?= $subject['id']; ?>"
+                                <?= ($edit_note && (int)$edit_note['matiere_id'] === (int)$subject['id']) ? 'selected' : ''; ?>>
 
                                 <?= htmlspecialchars($subject['nom_matiere']); ?>
 
@@ -760,6 +841,7 @@ if($total_notes > 0){
                            step="0.01"
                            min="0"
                            max="20"
+                              value="<?= $edit_note ? htmlspecialchars((string)$edit_note['note']) : ''; ?>"
 
                            class="form-control"
                            required>
@@ -774,8 +856,8 @@ if($total_notes > 0){
                             class="form-control"
                             required>
 
-                        <option value="Normale">Normale</option>
-                        <option value="Rattrapage">Rattrapage</option>
+                        <option value="Normale" <?= ($edit_note && $edit_note['session'] === 'Normale') ? 'selected' : ''; ?>>Normale</option>
+                        <option value="Rattrapage" <?= ($edit_note && $edit_note['session'] === 'Rattrapage') ? 'selected' : ''; ?>>Rattrapage</option>
 
                     </select>
 
@@ -792,17 +874,17 @@ if($total_notes > 0){
 
                        class="form-control"
 
-                       value="<?= date('Y-m-d'); ?>">
+                      value="<?= $edit_note ? htmlspecialchars($edit_note['date_note']) : date('Y-m-d'); ?>">
 
             </div>
 
             <div class="modal-footer">
 
                 <button type="submit"
-                        name="add_note"
+                        name="<?= $edit_note ? 'update_note' : 'add_note'; ?>"
                         class="btn-primary">
 
-                    Ajouter la Note
+                    <?= $edit_note ? 'Mettre à jour la Note' : 'Ajouter la Note'; ?>
 
                 </button>
 
@@ -841,6 +923,10 @@ if($total_notes > 0){
         }
 
     }
+
+    <?php if($edit_note): ?>
+    openModal();
+    <?php endif; ?>
 
 </script>
 

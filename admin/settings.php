@@ -46,6 +46,24 @@ if(!$admin){
 
 }
 
+$adminColumns = [];
+
+try {
+    $columnsStmt = $pdo->query("SHOW COLUMNS FROM admins");
+    foreach ($columnsStmt->fetchAll(PDO::FETCH_ASSOC) as $column) {
+        if (isset($column['Field'])) {
+            $adminColumns[$column['Field']] = true;
+        }
+    }
+} catch (PDOException $e) {
+    // En cas d'erreur metadata, on garde un fallback minimal.
+    $adminColumns = [
+        'nom' => true,
+        'email' => true,
+        'mot_de_passe' => true
+    ];
+}
+
 /* =========================================================
    SECURITE ANTI BRUTE FORCE
 ========================================================= */
@@ -75,13 +93,13 @@ if(
    UPDATE PROFIL
 ========================================================= */
 
-if(isset($_POST['save_profile'])){
+if(isset($_POST['save_profile']) || isset($_POST['update_profile'])){
 
-    $nom = trim($_POST['nom']);
-    $prenom = trim($_POST['prenom']);
-    $email = trim($_POST['email']);
-    $telephone = trim($_POST['telephone']);
-    $theme = trim($_POST['theme']);
+    $nom = trim($_POST['nom'] ?? '');
+    $prenom = trim($_POST['prenom'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $telephone = trim($_POST['telephone'] ?? '');
+    $theme = trim($_POST['theme'] ?? '');
 
     if(
         empty($nom) ||
@@ -115,7 +133,7 @@ if(isset($_POST['save_profile'])){
                UPLOAD PHOTO
             ========================================= */
 
-            $photo_name = $admin['photo'];
+            $photo_name = $admin['photo'] ?? null;
 
             if(
                 isset($_FILES['photo']) &&
@@ -161,31 +179,61 @@ if(isset($_POST['save_profile'])){
 
             }
 
-            $update = $pdo->prepare("
-                UPDATE admins
-                SET
-                    nom = ?,
-                    prenom = ?,
-                    email = ?,
-                    telephone = ?,
-                    photo = ?,
-                    theme = ?
-                WHERE id = ?
-            ");
+            $setClauses = [];
+            $values = [];
 
-            $update->execute([
+            if (isset($adminColumns['nom'])) {
+                $setClauses[] = "nom = ?";
+                $values[] = htmlspecialchars($nom);
+            }
 
-                htmlspecialchars($nom),
-                htmlspecialchars($prenom),
-                htmlspecialchars($email),
-                htmlspecialchars($telephone),
-                $photo_name,
-                $theme,
-                $admin_id
+            if (isset($adminColumns['prenom'])) {
+                $setClauses[] = "prenom = ?";
+                $values[] = htmlspecialchars($prenom);
+            }
 
-            ]);
+            if (isset($adminColumns['email'])) {
+                $setClauses[] = "email = ?";
+                $values[] = htmlspecialchars($email);
+            }
+
+            if (isset($adminColumns['telephone'])) {
+                $setClauses[] = "telephone = ?";
+                $values[] = htmlspecialchars($telephone);
+            }
+
+            if (isset($adminColumns['photo'])) {
+                $setClauses[] = "photo = ?";
+                $values[] = $photo_name;
+            }
+
+            if (isset($adminColumns['theme'])) {
+                $setClauses[] = "theme = ?";
+                $values[] = $theme;
+            }
+
+            if (!empty($setClauses)) {
+                $values[] = $admin_id;
+
+                $update = $pdo->prepare("
+                    UPDATE admins
+                    SET " . implode(', ', $setClauses) . "
+                    WHERE id = ?
+                ");
+
+                $update->execute($values);
+            }
 
             $_SESSION['user_nom'] = $nom;
+            $_SESSION['user_prenom'] = $prenom;
+            $_SESSION['user_email'] = $email;
+
+            $admin['nom'] = $nom;
+            $admin['prenom'] = $prenom;
+            $admin['email'] = $email;
+            $admin['telephone'] = $telephone;
+            $admin['photo'] = $photo_name;
+            $admin['theme'] = $theme;
 
             $message = "Profil mis à jour avec succès.";
 
@@ -199,7 +247,7 @@ if(isset($_POST['save_profile'])){
    CHANGEMENT MOT DE PASSE
 ========================================================= */
 
-if(isset($_POST['change_password'])){
+if(isset($_POST['change_password']) || isset($_POST['update_password'])){
 
     $current_password = $_POST['current_password'];
 
@@ -216,7 +264,8 @@ if(isset($_POST['change_password'])){
         $error = "Veuillez remplir tous les champs.";
 
     }elseif(
-        $current_password != $admin['mot_de_passe']
+        !password_verify($current_password, $admin['mot_de_passe'] ?? '') &&
+        $current_password !== ($admin['mot_de_passe'] ?? '')
     ){
 
         $_SESSION['login_attempts']++;
@@ -237,6 +286,8 @@ if(isset($_POST['change_password'])){
 
         $_SESSION['login_attempts'] = 0;
 
+        $hashedPassword = password_hash($new_password, PASSWORD_DEFAULT);
+
         $updatePassword = $pdo->prepare("
             UPDATE admins
             SET mot_de_passe = ?
@@ -245,10 +296,12 @@ if(isset($_POST['change_password'])){
 
         $updatePassword->execute([
 
-            $new_password,
+            $hashedPassword,
             $admin_id
 
         ]);
+
+        $admin['mot_de_passe'] = $hashedPassword;
 
         $message = "Mot de passe modifié avec succès.";
 
@@ -319,35 +372,42 @@ if(isset($_POST['save_notifications'])){
 }
 
 /* =========================================================
-   ACTIVITE CONNEXION
+   ACTIVITE CONNEXION / SESSIONS ACTIVES
 ========================================================= */
 
-$logs = $pdo->prepare("
-    SELECT *
-    FROM login_logs
-    WHERE admin_id = ?
-    ORDER BY login_time DESC
-    LIMIT 10
-");
+$activities = [];
+$active_sessions = [];
 
-$logs->execute([$admin_id]);
+try {
+    $logs = $pdo->prepare("
+        SELECT *
+        FROM login_logs
+        WHERE admin_id = ?
+        ORDER BY login_time DESC
+        LIMIT 10
+    ");
 
-$activities = $logs->fetchAll(PDO::FETCH_ASSOC);
+    $logs->execute([$admin_id]);
+    $activities = $logs->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Les tables d'audit peuvent etre absentes selon le schema.
+    $activities = [];
+}
 
-/* =========================================================
-   SESSIONS ACTIVES
-========================================================= */
+try {
+    $sessions = $pdo->prepare("
+        SELECT *
+        FROM active_sessions
+        WHERE admin_id = ?
+        ORDER BY last_activity DESC
+    ");
 
-$sessions = $pdo->prepare("
-    SELECT *
-    FROM active_sessions
-    WHERE admin_id = ?
-    ORDER BY last_activity DESC
-");
-
-$sessions->execute([$admin_id]);
-
-$active_sessions = $sessions->fetchAll(PDO::FETCH_ASSOC);
+    $sessions->execute([$admin_id]);
+    $active_sessions = $sessions->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Fallback silencieux si la table n'existe pas.
+    $active_sessions = [];
+}
 
 
 
@@ -383,7 +443,7 @@ $total_notes = $pdo->query("
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Paramètres Administrateur</title>
+    <title>Profile Administrateur</title>
 
     <link rel="stylesheet"
           href="../assets/css/settings.css">
@@ -485,7 +545,7 @@ $total_notes = $pdo->query("
             <li class="menu-item active">
                 <a href="settings.php">
                     <i data-lucide="settings"></i>
-                    <span>Paramètres</span>
+                    <span>Profile</span>
                 </a>
             </li>
 
@@ -500,13 +560,13 @@ $total_notes = $pdo->query("
         <div class="admin-profile">
 
             <div class="avatar">
-                A
+                <?= strtoupper(substr($_SESSION['user_nom'] ?? 'A', 0, 1)); ?>
             </div>
 
             <div>
 
                 <h4>
-                    <?php echo $_SESSION['user_nom']; ?>
+                    <?php echo htmlspecialchars($_SESSION['user_nom'] ?? 'Admin'); ?>
                 </h4>
 
                 <span>
@@ -573,7 +633,7 @@ $total_notes = $pdo->query("
             </span>
 
             <h1>
-                Paramètres Administrateur
+                Profile Administrateur
             </h1>
 
             <p>
@@ -712,7 +772,7 @@ $total_notes = $pdo->query("
                             name="nom"
                             class="form-control"
 
-                            value="<?= htmlspecialchars($admin['nom']); ?>"
+                            value="<?= htmlspecialchars($admin['nom'] ?? ''); ?>"
 
                             required
                         >
@@ -728,7 +788,7 @@ $total_notes = $pdo->query("
                             name="prenom"
                             class="form-control"
 
-                            value="<?= htmlspecialchars($admin['prenom']); ?>"
+                            value="<?= htmlspecialchars($admin['prenom'] ?? ''); ?>"
 
                             required
                         >
@@ -746,7 +806,7 @@ $total_notes = $pdo->query("
                         name="email"
                         class="form-control"
 
-                        value="<?= htmlspecialchars($admin['email']); ?>"
+                        value="<?= htmlspecialchars($admin['email'] ?? ''); ?>"
 
                         required
                     >

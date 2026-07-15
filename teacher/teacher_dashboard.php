@@ -1,42 +1,6 @@
 <?php
-
-session_start();
-
-if(
-    !isset($_SESSION['user_role']) ||
-    $_SESSION['user_role'] != 'teacher'
-){
-
-    header("Location: ../index.php");
-    exit;
-
-}
-
-require_once("../config/database.php");
-
-/* =========================================================
-   TEACHER INFO
-========================================================= */
-
-$teacher_id = $_SESSION['user_id'];
-
-/* =========================================================
-   TOTAL COURSES
-========================================================= */
-
-$coursesQuery = $pdo->prepare("
-
-    SELECT COUNT(*) as total
-
-    FROM emplois_temps
-
-    WHERE enseignant_id = ?
-
-");
-
-$coursesQuery->execute([$teacher_id]);
-
-$totalCourses = $coursesQuery->fetch(PDO::FETCH_ASSOC)['total'];
+header('Location: ../public/teacher/dashboard');
+exit;
 
 /* =========================================================
    TOTAL STUDENTS

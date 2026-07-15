@@ -44,7 +44,7 @@ class AuthController {
         }
 
         $email = sanitize($_POST['email'] ?? '');
-        $password = sanitize($_POST['password'] ?? '');
+        $password = trim($_POST['password'] ?? '');
         $role = sanitize($_POST['role'] ?? '');
         
         $error = '';
@@ -73,8 +73,44 @@ class AuthController {
 
             if (!$user) {
                 $error = "Compte introuvable.";
-            } elseif (!verifyPassword($password, $user['mot_de_passe'])) {
-                $error = "Mot de passe incorrect.";
+            } else {
+                $storedPassword = $user['mot_de_passe'] ?? '';
+                $isPasswordValid = false;
+                $needsHashUpgrade = false;
+
+                if (!empty($storedPassword) && verifyPassword($password, $storedPassword)) {
+                    $isPasswordValid = true;
+                    $needsHashUpgrade = password_needs_rehash($storedPassword, PASSWORD_DEFAULT);
+                } elseif ($password === $storedPassword) {
+                    // Compatibilite comptes historiques en clair.
+                    $isPasswordValid = true;
+                    $needsHashUpgrade = true;
+                } elseif (preg_match('/^[a-f0-9]{32}$/i', $storedPassword) && hash('md5', $password) === strtolower($storedPassword)) {
+                    // Compatibilite comptes historiques md5.
+                    $isPasswordValid = true;
+                    $needsHashUpgrade = true;
+                } elseif (preg_match('/^[a-f0-9]{40}$/i', $storedPassword) && hash('sha1', $password) === strtolower($storedPassword)) {
+                    // Compatibilite comptes historiques sha1.
+                    $isPasswordValid = true;
+                    $needsHashUpgrade = true;
+                }
+
+                if (!$isPasswordValid) {
+                    $error = "Mot de passe incorrect.";
+                } elseif ($needsHashUpgrade) {
+                    $tableMap = [
+                        'admin' => 'admins',
+                        'student' => 'etudiants',
+                        'teacher' => 'enseignants',
+                    ];
+                    $table = $tableMap[$role] ?? null;
+
+                    if ($table !== null) {
+                        $newHash = hashPassword($password);
+                        $update = $this->pdo->prepare("UPDATE {$table} SET mot_de_passe = ? WHERE id = ?");
+                        $update->execute([$newHash, $user['id']]);
+                    }
+                }
             }
         }
 

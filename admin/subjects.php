@@ -260,7 +260,7 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <i data-lucide="settings"></i>
 
                         <span>
-                            Paramètres
+                            Profile
                         </span>
 
                     </a>

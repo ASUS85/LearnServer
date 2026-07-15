@@ -38,6 +38,8 @@ function assetUrl($path) {
     // Pointer vers le dossier assets parent jusqu'à ce que les fichiers soient copiés
     $basePath = '/LearnServer/assets';
     return $basePath . '/' . ltrim($path, '/');
+    // Les assets doivent être dans le dossier public pour être accessibles.
+    return baseUrl('assets/' . ltrim($path, '/'));
 }
 
 /**

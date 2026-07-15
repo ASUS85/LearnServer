@@ -93,18 +93,84 @@ class Student extends User {
      * Récupérer les notes d'un étudiant
      */
     public function getNotes($studentId) {
-        return $this->pdo->prepare("
+        $stmt = $this->pdo->prepare("
             SELECT n.*, m.nom_matiere
             FROM notes n
             LEFT JOIN matieres m ON n.matiere_id = m.id
             WHERE n.etudiant_id = ?
             ORDER BY n.date_creation DESC
-        ")->execute([$studentId]) ? $this->pdo->prepare("
-            SELECT n.*, m.nom_matiere
-            FROM notes n
-            LEFT JOIN matieres m ON n.matiere_id = m.id
-            WHERE n.etudiant_id = ?
-            ORDER BY n.date_creation DESC
-        ")->fetchAll() : [];
+        ");
+        $stmt->execute([$studentId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Statistiques de l'étudiant
+     */
+    public function getStatistics($studentId) {
+        $notesStmt = $this->pdo->prepare("SELECT COUNT(*) FROM notes WHERE etudiant_id = ?");
+        $notesStmt->execute([$studentId]);
+
+        $averageStmt = $this->pdo->prepare("SELECT ROUND(AVG(note), 2) FROM notes WHERE etudiant_id = ?");
+        $averageStmt->execute([$studentId]);
+
+        return [
+            'total_notes' => (int) $notesStmt->fetchColumn(),
+            'average_note' => $averageStmt->fetchColumn() ?: '0.00'
+        ];
+    }
+
+    /**
+     * Emploi du temps du jour de l'étudiant
+     */
+    public function getTodaySchedule($studentId, $day) {
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT
+                emplois_temps.*,
+                matieres.nom_matiere,
+                enseignants.nom AS enseignant_nom,
+                enseignants.prenom AS enseignant_prenom,
+                filieres.nom_filiere,
+                niveaux.nom_niveau
+            FROM emplois_temps
+            INNER JOIN matieres ON matieres.id = emplois_temps.matiere_id
+            LEFT JOIN enseignants ON enseignants.id = emplois_temps.enseignant_id
+            INNER JOIN filieres ON filieres.id = emplois_temps.filiere_id
+            INNER JOIN niveaux ON niveaux.id = emplois_temps.niveau_id
+            WHERE emplois_temps.jour = ?
+              AND emplois_temps.filiere_id = (SELECT filiere_id FROM {$this->table} WHERE id = ?)
+              AND emplois_temps.niveau_id = (SELECT niveau_id FROM {$this->table} WHERE id = ?)
+            ORDER BY heure_debut ASC
+        ");
+        $stmt->execute([$day, $studentId, $studentId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Emploi du temps complet pour le calendrier étudiant
+     */
+    public function getWeeklySchedule($studentId) {
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT
+                emplois_temps.*,
+                matieres.nom_matiere,
+                enseignants.nom AS enseignant_nom,
+                enseignants.prenom AS enseignant_prenom,
+                filieres.nom_filiere,
+                niveaux.nom_niveau
+            FROM emplois_temps
+            INNER JOIN matieres ON matieres.id = emplois_temps.matiere_id
+            LEFT JOIN enseignants ON enseignants.id = emplois_temps.enseignant_id
+            INNER JOIN filieres ON filieres.id = emplois_temps.filiere_id
+            INNER JOIN niveaux ON niveaux.id = emplois_temps.niveau_id
+            WHERE emplois_temps.filiere_id = (SELECT filiere_id FROM {$this->table} WHERE id = ?)
+              AND emplois_temps.niveau_id = (SELECT niveau_id FROM {$this->table} WHERE id = ?)
+            ORDER BY FIELD(emplois_temps.jour, 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'), heure_debut ASC
+        ");
+        $stmt->execute([$studentId, $studentId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

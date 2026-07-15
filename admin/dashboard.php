@@ -203,7 +203,7 @@ $totalSchedules = $pdo->query("
                         <i data-lucide="settings"></i>
 
                         <span>
-                            Paramètres
+                            Profile
                         </span>
 
                     </a>
@@ -221,13 +221,13 @@ $totalSchedules = $pdo->query("
             <div class="admin-profile">
 
                 <div class="avatar">
-                    A
+                    <?= strtoupper(substr($_SESSION['user_nom'] ?? 'A', 0, 1)); ?>
                 </div>
 
                 <div>
 
                     <h4>
-                        <?php echo $_SESSION['user_nom']; ?>
+                        <?php echo htmlspecialchars($_SESSION['user_nom'] ?? 'Admin'); ?>
                     </h4>
 
                     <span>
@@ -276,7 +276,7 @@ $totalSchedules = $pdo->query("
                     <h1>
 
                         Bienvenue,
-                        <?php echo $_SESSION['user_nom']; ?>
+                        <?php echo htmlspecialchars($_SESSION['user_nom'] ?? 'Admin'); ?>
 
                     </h1>
 

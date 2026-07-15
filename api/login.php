@@ -51,8 +51,8 @@ $tableMap = array(
 $redirectMap = array(
 
     'admin'  => '../admin/dashboard.php',
-    'student' => '../student/dashboard.php',
-    'teacher' => '../teacher/dashboard.php'
+    'student' => '../public/student/dashboard',
+    'teacher' => '../public/teacher/dashboard'
 
 );
 
@@ -103,10 +103,35 @@ if(empty($error)){
            MOT DE PASSE
         ================================================= */
 
-        if($password != $user['mot_de_passe']){
+        $storedPassword = $user['mot_de_passe'] ?? '';
+        $isPasswordValid = false;
+        $needsHashUpgrade = false;
+
+        if (!empty($storedPassword) && password_verify($password, $storedPassword)) {
+            $isPasswordValid = true;
+            $needsHashUpgrade = password_needs_rehash($storedPassword, PASSWORD_DEFAULT);
+        } elseif ($password === $storedPassword) {
+            // Compatibilite temporaire pour les comptes historiques en clair.
+            $isPasswordValid = true;
+            $needsHashUpgrade = true;
+        } elseif (preg_match('/^[a-f0-9]{32}$/i', $storedPassword) && hash('md5', $password) === strtolower($storedPassword)) {
+            // Compatibilite temporaire pour les comptes historiques md5.
+            $isPasswordValid = true;
+            $needsHashUpgrade = true;
+        } elseif (preg_match('/^[a-f0-9]{40}$/i', $storedPassword) && hash('sha1', $password) === strtolower($storedPassword)) {
+            // Compatibilite temporaire pour les comptes historiques sha1.
+            $isPasswordValid = true;
+            $needsHashUpgrade = true;
+        }
+
+        if(!$isPasswordValid){
 
             $error = "Mot de passe incorrect.";
 
+        } elseif ($needsHashUpgrade) {
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $update = $pdo->prepare("UPDATE $table SET mot_de_passe = ? WHERE id = ?");
+            $update->execute([$newHash, $user['id']]);
         }
 
     }
@@ -186,6 +211,9 @@ if(!empty($error)){
 $_SESSION['user_id'] = $user['id'];
 
 $_SESSION['user_nom'] = $user['nom'];
+$_SESSION['user_prenom'] = $user['prenom'] ?? '';
+$_SESSION['user_email'] = $user['email'] ?? '';
+$_SESSION['user_matricule'] = $user['matricule'] ?? null;
 
 $_SESSION['user_role'] = $role;
 

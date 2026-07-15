@@ -34,7 +34,7 @@ class AdminController {
      */
     public function students() {
         $students = $this->student->getAllWithDetails();
-        
+
         $filieres = $this->pdo->query("SELECT * FROM filieres")->fetchAll();
         $niveaux = $this->pdo->query("SELECT * FROM niveaux")->fetchAll();
 
@@ -171,13 +171,18 @@ class AdminController {
      * Gestion des matières
      */
     public function subjects() {
-        $subjects = $this->pdo->query("
-            SELECT m.*, c.nom_classe
-            FROM matieres m
-            LEFT JOIN classes c ON m.classe_id = c.id
-        ")->fetchAll();
+        try {
+            $subjects = $this->pdo->query("
+                SELECT m.*, NULL AS nom_classe
+                FROM matieres m
+                ORDER BY m.id DESC
+            ")->fetchAll();
+        } catch (PDOException $e) {
+            $subjects = [];
+        }
 
-        $classes = $this->pdo->query("SELECT * FROM classes")->fetchAll();
+        // Conservé pour compatibilité de vue.
+        $classes = [];
 
         view('admin.subjects', [
             'subjects' => $subjects,
@@ -189,17 +194,43 @@ class AdminController {
      * Gestion de l'emploi du temps
      */
     public function schedule() {
-        $schedules = $this->pdo->query("
-            SELECT et.*, m.nom_matiere, e.nom, e.prenom, c.nom_classe
-            FROM emplois_temps et
-            LEFT JOIN matieres m ON et.matiere_id = m.id
-            LEFT JOIN enseignants e ON et.enseignant_id = e.id
-            LEFT JOIN classes c ON et.classe_id = c.id
-        ")->fetchAll();
+        try {
+            $schedules = $this->pdo->query("
+                SELECT
+                    et.*,
+                    m.nom_matiere,
+                    e.nom,
+                    e.prenom,
+                    CONCAT(
+                        COALESCE(f.nom_filiere, ''),
+                        CASE WHEN f.nom_filiere IS NOT NULL AND n.nom_niveau IS NOT NULL THEN ' - ' ELSE '' END,
+                        COALESCE(n.nom_niveau, '')
+                    ) AS nom_classe
+                FROM emplois_temps et
+                LEFT JOIN matieres m ON et.matiere_id = m.id
+                LEFT JOIN enseignants e ON et.enseignant_id = e.id
+                LEFT JOIN filieres f ON et.filiere_id = f.id
+                LEFT JOIN niveaux n ON et.niveau_id = n.id
+                ORDER BY FIELD(et.jour, 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'), et.heure_debut ASC
+            ")->fetchAll();
+        } catch (PDOException $e) {
+            $schedules = [];
+        }
 
-        $matieres = $this->pdo->query("SELECT * FROM matieres")->fetchAll();
-        $teachers = $this->teacher->getAll();
-        $classes = $this->pdo->query("SELECT * FROM classes")->fetchAll();
+        try {
+            $matieres = $this->pdo->query("SELECT * FROM matieres")->fetchAll();
+        } catch (PDOException $e) {
+            $matieres = [];
+        }
+
+        try {
+            $teachers = $this->teacher->getAll();
+        } catch (PDOException $e) {
+            $teachers = [];
+        }
+
+        // Conservé pour compatibilité de vue.
+        $classes = [];
 
         view('admin.schedule', [
             'schedules' => $schedules,
@@ -227,6 +258,82 @@ class AdminController {
      * Paramètres
      */
     public function settings() {
-        view('admin.settings');
+        $adminId = $_SESSION['user_id'] ?? null;
+        $adminData = $this->admin->findById($adminId);
+
+        if (!$adminData) {
+            session_destroy();
+            redirect('index.php');
+        }
+
+        $message = '';
+        $error = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+            $nom = sanitize($_POST['nom'] ?? '');
+            $prenom = sanitize($_POST['prenom'] ?? '');
+            $email = sanitize($_POST['email'] ?? '');
+            $telephone = sanitize($_POST['telephone'] ?? '');
+
+            if (empty($nom) || empty($prenom) || empty($email)) {
+                $error = "Veuillez remplir tous les champs obligatoires.";
+            } elseif (!isValidEmail($email)) {
+                $error = "Email invalide.";
+            } else {
+                $check = $this->pdo->prepare("SELECT id FROM admins WHERE email = ? AND id != ?");
+                $check->execute([$email, $adminId]);
+
+                if ($check->fetch()) {
+                    $error = "Cet email existe déjà.";
+                } else {
+                    $updated = $this->admin->update($adminId, [
+                        'nom' => $nom,
+                        'prenom' => $prenom,
+                        'email' => $email,
+                        'telephone' => $telephone
+                    ]);
+
+                    if ($updated) {
+                        $_SESSION['user_nom'] = $nom;
+                        $_SESSION['user_prenom'] = $prenom;
+                        $_SESSION['user_email'] = $email;
+                        $message = "Profil mis à jour avec succès.";
+                    } else {
+                        $error = "Impossible de mettre à jour le profil.";
+                    }
+                }
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_password'])) {
+            $currentPassword = $_POST['current_password'] ?? '';
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+                $error = "Veuillez remplir tous les champs.";
+            } elseif (!verifyPassword($currentPassword, $adminData['mot_de_passe']) && $currentPassword !== $adminData['mot_de_passe']) {
+                $error = "Mot de passe actuel incorrect.";
+            } elseif (strlen($newPassword) < 6) {
+                $error = "Le mot de passe doit contenir au moins 6 caractères.";
+            } elseif ($newPassword !== $confirmPassword) {
+                $error = "Les mots de passe ne correspondent pas.";
+            } else {
+                $updated = $this->admin->update($adminId, ['mot_de_passe' => $newPassword]);
+                if ($updated) {
+                    $message = "Mot de passe modifié avec succès.";
+                } else {
+                    $error = "Impossible de modifier le mot de passe.";
+                }
+            }
+        }
+
+        $adminData = $this->admin->findById($adminId);
+
+        view('admin.settings', [
+            'admin' => $adminData,
+            'message' => $message,
+            'error' => $error
+        ]);
     }
 }

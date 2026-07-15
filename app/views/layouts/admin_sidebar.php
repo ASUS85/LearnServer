@@ -77,7 +77,7 @@ $currentPage = basename($_SERVER['REQUEST_URI']);
 
             <li class="menu-item <?php echo (strpos($currentPage, 'subjects') !== false) ? 'active' : ''; ?>">
 
-                <a href="<?php echo baseUrl('admin/subjects'); ?>">
+                <a href="/LearnServer/admin/subjects.php">
 
                     <i data-lucide="book-open"></i>
 
@@ -89,7 +89,7 @@ $currentPage = basename($_SERVER['REQUEST_URI']);
 
             <li class="menu-item <?php echo (strpos($currentPage, 'schedule') !== false) ? 'active' : ''; ?>">
 
-                <a href="<?php echo baseUrl('admin/schedule'); ?>">
+                <a href="/LearnServer/admin/schedule.php">
 
                     <i data-lucide="calendar-days"></i>
 
@@ -101,7 +101,7 @@ $currentPage = basename($_SERVER['REQUEST_URI']);
 
             <li class="menu-item <?php echo (strpos($currentPage, 'notes') !== false) ? 'active' : ''; ?>">
 
-                <a href="<?php echo baseUrl('admin/notes'); ?>">
+                <a href="/LearnServer/admin/notes.php">
 
                     <i data-lucide="clipboard-list"></i>
 
@@ -111,13 +111,13 @@ $currentPage = basename($_SERVER['REQUEST_URI']);
 
             </li>
 
-            <li class="menu-item <?php echo (strpos($currentPage, 'settings') !== false) ? 'active' : ''; ?>">
+            <li class="menu-item <?php echo (strpos($currentPage, 'settings') !== false || strpos($currentPage, 'profile') !== false) ? 'active' : ''; ?>">
 
-                <a href="<?php echo baseUrl('admin/settings'); ?>">
+                <a href="<?php echo baseUrl('admin/profile'); ?>">
 
                     <i data-lucide="settings"></i>
 
-                    <span>Paramètres</span>
+                    <span>Profile</span>
 
                 </a>
 
