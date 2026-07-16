@@ -1,0 +1,94 @@
+RAPPORT PROJET - LEARNSERVER
+Date: 2026-07-16
+Version: 1.0
+Auteur: __________________
+
+1) RESUME EXECUTIF
+Le projet LearnServer est une application web de gestion scolaire avec plusieurs profils utilisateurs (admin, enseignant, etudiant). Il inclut des modules d'authentification, tableaux de bord, gestion des eleves, enseignants, matieres, notes et emplois du temps.
+
+2) OBJECTIFS DU PROJET
+- Centraliser la gestion academique
+- Offrir des interfaces par role
+- Faciliter la gestion des notes et des emplois du temps
+- Assurer une base evolutive avec structure MVC et flux legacy
+
+3) PERIMETRE FONCTIONNEL
+- Authentification:
+  - Login / Register / Logout
+- Administration:
+  - Gestion enseignants
+  - Gestion etudiants
+  - Gestion matieres
+  - Gestion notes
+  - Gestion emploi du temps
+  - Parametres
+- Enseignant:
+  - Dashboard
+  - Profil
+  - Consultation emploi du temps
+- Etudiant:
+  - Dashboard
+  - Profil
+  - Consultation notes et emploi du temps
+
+4) ARCHITECTURE TECHNIQUE
+- Backend: PHP
+- Base de donnees: MySQL/MariaDB
+- Frontend: HTML/CSS/JS
+- Style d'architecture: coexistence MVC + pages legacy
+
+5) STRUCTURE PRINCIPALE DU CODE
+- app/controllers: logique metier et controleurs
+- app/models: acces donnees
+- app/views: vues par role
+- admin/, student/, teacher/: pages legacy
+- api/: endpoints d'authentification
+- config/ et app/config/: configuration BDD
+- assets/: styles et scripts
+
+6) ETAT D'AVANCEMENT (A COMPLETER)
+- Module Auth: [OK / EN COURS / KO]
+- Module Admin: [OK / EN COURS / KO]
+- Module Teacher: [OK / EN COURS / KO]
+- Module Student: [OK / EN COURS / KO]
+- API: [OK / EN COURS / KO]
+- Qualite UI/UX: [OK / EN COURS / KO]
+
+7) TESTS REALISES (A COMPLETER)
+- Tests de connexion/deconnexion: __________________
+- Tests CRUD (teachers/students/subjects): __________________
+- Tests notes/schedule: __________________
+- Tests des redirections par role: __________________
+- Tests gestion session: __________________
+
+8) INCIDENTS ET CORRECTIONS (A COMPLETER)
+- Incident 1: __________________
+  Cause: __________________
+  Correction: __________________
+- Incident 2: __________________
+  Cause: __________________
+  Correction: __________________
+
+9) LIMITES ACTUELLES
+- Double flux applicatif (MVC + legacy) a harmoniser progressivement
+- Risque d'incoherence fonctionnelle si une correction est appliquee dans un seul flux
+
+10) RECOMMANDATIONS
+- Unifier progressivement les routes et vues
+- Centraliser la configuration BDD
+- Ajouter des tests de non-regression
+- Renforcer la validation des formulaires et la gestion des erreurs
+
+11) PLAN D'ACTIONS PROPOSE
+- Court terme (1 a 2 semaines): stabilisation des modules critiques
+- Moyen terme (2 a 4 semaines): alignement MVC/legacy
+- Long terme: migration complete vers un flux unique
+
+12) CONCLUSION
+Le projet dispose d'une base fonctionnelle solide pour la gestion scolaire locale. Les prochaines etapes doivent viser la consolidation de l'architecture, la reduction des doublons et l'amelioration continue de la qualite.
+
+Signatures:
+- Responsable technique: __________________
+- Validation projet: __________________
+
+Fin du rapport.

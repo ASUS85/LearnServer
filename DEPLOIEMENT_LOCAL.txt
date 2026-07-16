@@ -1,0 +1,111 @@
+DEPLOIEMENT LOCAL - PROJET LEARNSERVER
+Date: 2026-07-16
+Environnement cible: Windows + WAMP
+
+1) PREREQUIS
+- WAMP installe (Apache + PHP + MySQL/MariaDB)
+- Navigateur web
+- Acces a phpMyAdmin
+
+2) PLACEMENT DU PROJET
+- Copier le dossier LearnServer dans:
+  c:\wamp64\www\LearnServer
+- Verifier que ces fichiers existent a la racine:
+  index.php, register.php, README.md
+
+3) DEMARRAGE DES SERVICES
+- Ouvrir WAMP
+- Demarrer Apache et MySQL
+- Verifier l'icone WAMP en vert
+
+4) CREATION DE LA BASE DE DONNEES
+- Ouvrir phpMyAdmin: http://localhost/phpmyadmin
+- Creer une base de données: gestion_cours_db
+- Importer le script SQL du projet:
+  database/init_learnserver.sql
+
+4.1) IMPORT SQL (METHODE RECOMMANDEE)
+- Dans phpMyAdmin, selectionner la base: gestion_cours_db
+- Ouvrir l'onglet Importer
+- Choisir le fichier:
+  c:\wamp64\www\LearnServer\database\init_learnserver.sql
+- Lancer l'import
+- Verifier que les tables suivantes existent:
+  admins, enseignants, etudiants, filieres, niveaux, classes,
+  matieres, emplois_temps, notes
+
+5) CONFIGURATION DE LA CONNEXION BDD
+- Verifier/editer les fichiers:
+  config/database.php
+  app/config/database.php
+- Parametres conseilles en local:
+  host: localhost
+  port: 3306
+  username: root
+  password: (vide par defaut WAMP)
+  database: gestion_cours_db
+
+6) URLS DE TEST
+- Point d'entree principal:
+  http://localhost/LearnServer/
+- Route publique MVC (si active):
+  http://localhost/LearnServer/public/
+- Login API (selon implementation):
+  http://localhost/LearnServer/api/login.php
+
+7) COMPTES ET AUTHENTIFICATION
+- Le script SQL cree automatiquement:
+  - 1 administrateur
+  - 3 enseignants
+  - 6 etudiants
+- Mot de passe par defaut pour tous les comptes:
+  Learn@1234
+- Identifiants de connexion (email + role):
+  ADMIN
+  - email: admin@learnserver.local | role: admin
+
+  ENSEIGNANTS
+  - email: teacher1@learnserver.local | role: teacher | matricule: ENS001
+  - email: teacher2@learnserver.local | role: teacher | matricule: ENS002
+  - email: teacher3@learnserver.local | role: teacher | matricule: ENS003
+
+  ETUDIANTS
+  - email: student1@learnserver.local | role: student | matricule: ETU001
+  - email: student2@learnserver.local | role: student | matricule: ETU002
+  - email: student3@learnserver.local | role: student | matricule: ETU003
+  - email: student4@learnserver.local | role: student | matricule: ETU004
+  - email: student5@learnserver.local | role: student | matricule: ETU005
+  - email: student6@learnserver.local | role: student | matricule: ETU006
+- Le projet peut contenir 2 flux (MVC + pages legacy):
+  - Flux MVC via public/index.php
+  - Flux legacy via pages directes a la racine/admin
+
+8) VERIFICATIONS POST-DEPLOIEMENT
+- Login / Logout fonctionnels
+- Navigation dashboards:
+  admin/dashboard.php
+  student/dashboard.php
+  teacher/teacher_dashboard.php
+- CRUD principal (teachers, students, subjects, notes, schedule) sans erreur SQL
+- Sessions utilisateur valides et redirections correctes
+
+9) DEPANNAGE RAPIDE
+- Erreur 500:
+  - verifier logs Apache/PHP (WAMP logs)
+  - verifier syntaxe PHP dans fichiers modifies
+- Erreur BDD:
+  - verifier identifiants dans config/database.php et app/config/database.php
+  - verifier que la base et les tables existent
+- Page blanche:
+  - activer affichage erreurs PHP en local
+
+10) CHECKLIST DE MISE EN LIGNE LOCALE
+- [ ] Apache et MySQL demarres
+- [ ] Base importee via database/init_learnserver.sql
+- [ ] Connexion BDD valide
+- [ ] Auth fonctionnelle
+- [ ] Connexion testee avec admin + teacher + student
+- [ ] Modules admin/student/teacher verifies
+- [ ] APIs essentielles testees
+
+Fin du document.
